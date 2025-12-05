@@ -1,10 +1,66 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { Card3D, Input3D, Button3D } from '../components/UI';
 import { Send, Bot, User, Loader2, Plus, MessageSquare, Trash2, Menu, X, Sparkles, ChevronRight, Copy, Check } from 'lucide-react';
 import { useAiChat } from '../hooks/useAiChat';
 import { ChatMessage } from '../types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
+// --- Memoized Message Bubble Component ---
+const ChatMessageBubble = memo(({ msg, onCopy, copiedId, idx }: { msg: ChatMessage, onCopy: (text: string, id: string) => void, copiedId: string | null, idx: number }) => {
+  const isUser = msg.role === 'user';
+  return (
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300 group/message`}>
+      <div className={`flex gap-3 md:gap-4 max-w-[90%] md:max-w-[80%] items-start ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+        
+        {/* Avatar */}
+        <div className={`
+          w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg border border-white/10 mt-1
+          ${isUser ? 'bg-indigo-600 text-white' : 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white'}
+        `}>
+          {isUser ? <User size={18} className="md:w-5 md:h-5" /> : <Bot size={18} className="md:w-5 md:h-5" />}
+        </div>
+
+        {/* Bubble */}
+        <div className={`
+           group relative p-4 md:p-5 rounded-2xl shadow-md text-sm md:text-base leading-relaxed break-words transition-all
+           ${isUser 
+             ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-tr-none shadow-indigo-500/20' 
+             : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-tl-none shadow-sm hover:shadow-md'}
+        `}>
+          {/* Message Content with Markdown */}
+          <div className="prose dark:prose-invert max-w-none text-sm md:text-base leading-relaxed break-words">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {msg.text}
+            </ReactMarkdown>
+          </div>
+          
+          {/* Timestamp & Meta */}
+          <div className={`text-[10px] mt-2 flex items-center gap-2 ${isUser ? 'text-indigo-200 justify-end' : 'text-slate-400 justify-start'}`}>
+             {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+             {msg.isError && <span className="text-rose-500 font-bold bg-rose-50 dark:bg-rose-900/20 px-1.5 rounded">Error</span>}
+          </div>
+          
+          {/* 3D Depth Edge */}
+          <div className={`absolute inset-x-0 -bottom-1 h-2 rounded-b-2xl opacity-20 ${isUser ? 'bg-black' : 'bg-slate-900/10'}`} />
+        </div>
+
+        {/* Copy Button (only for AI) */}
+        {!isUser && (
+          <button
+            onClick={() => onCopy(msg.text, idx.toString())}
+            className="opacity-0 group-hover/message:opacity-100 transition-all duration-200 p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 bg-slate-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700/50 mt-1 self-start shrink-0 ml-2 transform hover:scale-105 active:scale-95 focus:opacity-100 focus:outline-none"
+            title="Copy to clipboard"
+            aria-label="Copy to clipboard"
+          >
+            {copiedId === idx.toString() ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+});
 
 export const AIChat: React.FC = () => {
   const { 
@@ -199,59 +255,15 @@ export const AIChat: React.FC = () => {
                  ref={scrollContainerRef}
                  className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth custom-scrollbar relative z-0"
                >
-                  {currentChat.messages.map((msg, idx) => {
-                    const isUser = msg.role === 'user';
-                    return (
-                      <div key={idx} className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300 group/message`}>
-                        <div className={`flex gap-3 md:gap-4 max-w-[90%] md:max-w-[80%] items-start ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                          
-                          {/* Avatar */}
-                          <div className={`
-                            w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg border border-white/10 mt-1
-                            ${isUser ? 'bg-indigo-600 text-white' : 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white'}
-                          `}>
-                            {isUser ? <User size={18} className="md:w-5 md:h-5" /> : <Bot size={18} className="md:w-5 md:h-5" />}
-                          </div>
-
-                          {/* Bubble */}
-                          <div className={`
-                             group relative p-4 md:p-5 rounded-2xl shadow-md text-sm md:text-base leading-relaxed break-words transition-all
-                             ${isUser 
-                               ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-tr-none shadow-indigo-500/20' 
-                               : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-tl-none shadow-sm hover:shadow-md'}
-                          `}>
-                            {/* Message Content with Markdown */}
-                            <div className="prose dark:prose-invert max-w-none text-sm md:text-base leading-relaxed break-words">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {msg.text}
-                              </ReactMarkdown>
-                            </div>
-                            
-                            {/* Timestamp & Meta */}
-                            <div className={`text-[10px] mt-2 flex items-center gap-2 ${isUser ? 'text-indigo-200 justify-end' : 'text-slate-400 justify-start'}`}>
-                               {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                               {msg.isError && <span className="text-rose-500 font-bold bg-rose-50 dark:bg-rose-900/20 px-1.5 rounded">Error</span>}
-                            </div>
-                            
-                            {/* 3D Depth Edge */}
-                            <div className={`absolute inset-x-0 -bottom-1 h-2 rounded-b-2xl opacity-20 ${isUser ? 'bg-black' : 'bg-slate-900/10'}`} />
-                          </div>
-
-                          {/* Copy Button (only for AI) */}
-                          {!isUser && (
-                            <button
-                              onClick={() => handleCopy(msg.text, idx.toString())}
-                              className="opacity-0 group-hover/message:opacity-100 transition-all duration-200 p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 bg-slate-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700/50 mt-1 self-start shrink-0 ml-2 transform hover:scale-105 active:scale-95 focus:opacity-100 focus:outline-none"
-                              title="Copy to clipboard"
-                              aria-label="Copy to clipboard"
-                            >
-                              {copiedId === idx.toString() ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {currentChat.messages.map((msg, idx) => (
+                    <ChatMessageBubble 
+                      key={idx} 
+                      msg={msg} 
+                      idx={idx} 
+                      onCopy={handleCopy} 
+                      copiedId={copiedId} 
+                    />
+                  ))}
                   
                   {isSending && currentChat.messages[currentChat.messages.length - 1]?.role === 'user' && (
                      <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2">

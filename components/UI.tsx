@@ -434,30 +434,44 @@ export const TiltRow: React.FC<{
   isSelected?: boolean 
 }> = ({ children, className = '', onClick, isSelected }) => {
   const rowRef = useRef<HTMLTableRowElement>(null);
+  const rafId = useRef<number | null>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLTableRowElement>) => {
-    // Only apply tilt on non-touch devices and wider screens to prevent performance issues on mobile
+    // Disable on mobile/small screens for performance
     if (window.innerWidth < 768) return;
     
     if (!rowRef.current) return;
-    const { left, top, width, height } = rowRef.current.getBoundingClientRect();
-    const x = (e.clientX - left) / width;
-    const y = (e.clientY - top) / height;
     
-    const tiltX = (0.5 - y) * 2; 
-    const tiltY = (x - 0.5) * 2; 
+    // Throttle via RequestAnimationFrame
+    if (rafId.current) return;
 
-    rowRef.current.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.005)`;
-    rowRef.current.style.zIndex = '10';
-    
-    // Dynamic shadow
-    rowRef.current.style.boxShadow = `
-      ${-(x - 0.5) * 10}px ${-(y - 0.5) * 10}px 20px rgba(0,0,0,0.1),
-      0 0 0 1px rgba(99,102,241,${isSelected ? '0.4' : '0.1'})
-    `;
+    rafId.current = requestAnimationFrame(() => {
+      if (!rowRef.current) return;
+      const { left, top, width, height } = rowRef.current.getBoundingClientRect();
+      const x = (e.clientX - left) / width;
+      const y = (e.clientY - top) / height;
+      
+      const tiltX = (0.5 - y) * 2; 
+      const tiltY = (x - 0.5) * 2; 
+
+      rowRef.current.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.005)`;
+      rowRef.current.style.zIndex = '10';
+      
+      rowRef.current.style.boxShadow = `
+        ${-(x - 0.5) * 10}px ${-(y - 0.5) * 10}px 20px rgba(0,0,0,0.1),
+        0 0 0 1px rgba(99,102,241,${isSelected ? '0.4' : '0.1'})
+      `;
+      
+      rafId.current = null;
+    });
   };
 
   const handleMouseLeave = () => {
+    if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+    }
+    
     if (!rowRef.current) return;
     rowRef.current.style.transform = isSelected ? 'scale(1)' : 'none';
     rowRef.current.style.zIndex = isSelected ? '5' : '1';
@@ -467,7 +481,7 @@ export const TiltRow: React.FC<{
   return (
     <tr 
       ref={rowRef}
-      className={`transition-all duration-300 ease-out will-change-transform relative ${className} ${isSelected ? 'bg-indigo-50/50 dark:bg-indigo-900/10 z-[5]' : ''}`}
+      className={`transition-transform duration-300 ease-out will-change-transform relative ${className} ${isSelected ? 'bg-indigo-50/50 dark:bg-indigo-900/10 z-[5]' : ''}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}

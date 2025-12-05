@@ -1,21 +1,8 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { HashRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { Dashboard } from './features/Dashboard';
-import { AIChat } from './features/AIChat';
-import { Contacts } from './features/Contacts';
-import { Companies } from './features/Companies';
-import { CompanyDetail } from './features/CompanyDetail';
-import { EmailFinder } from './features/EmailFinder';
-import { EmailVerifier } from './features/EmailVerifier';
-import { Billing } from './features/Billing';
-import { Exports } from './features/Exports';
-import { LinkedIn } from './features/LinkedIn';
-import { Profile } from './features/Profile';
-import { AdminUserHistory } from './features/AdminUserHistory';
-import { AdminUsers } from './features/AdminUsers';
 import { NAV_ITEMS, ADMIN_NAV_ITEMS, ICON_MAP } from './constants';
-import { LogOut, Settings, Menu, X, Sun, Moon, ChevronLeft, ChevronRight, User, Search, MoreHorizontal, Zap, Crown, Command, Keyboard, ArrowRight } from 'lucide-react';
+import { LogOut, Settings, Menu, X, Sun, Moon, Zap, MoreHorizontal, Command, Keyboard, Search, Loader2 } from 'lucide-react';
 import { Button3D, Badge3D } from './components/UI';
 import { NavItem } from './types';
 import { useTheme } from './contexts/ThemeContext';
@@ -23,6 +10,21 @@ import { RoleProvider, useRole } from './hooks/useRole';
 import { useBilling } from './hooks/useBilling';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { ShortcutsModal } from './components/ShortcutsModal';
+
+// --- Lazy Load Features ---
+const Dashboard = lazy(() => import('./features/Dashboard').then(module => ({ default: module.Dashboard })));
+const AIChat = lazy(() => import('./features/AIChat').then(module => ({ default: module.AIChat })));
+const Contacts = lazy(() => import('./features/Contacts').then(module => ({ default: module.Contacts })));
+const Companies = lazy(() => import('./features/Companies').then(module => ({ default: module.Companies })));
+const CompanyDetail = lazy(() => import('./features/CompanyDetail').then(module => ({ default: module.CompanyDetail })));
+const EmailFinder = lazy(() => import('./features/EmailFinder').then(module => ({ default: module.EmailFinder })));
+const EmailVerifier = lazy(() => import('./features/EmailVerifier').then(module => ({ default: module.EmailVerifier })));
+const Billing = lazy(() => import('./features/Billing').then(module => ({ default: module.Billing })));
+const Exports = lazy(() => import('./features/Exports').then(module => ({ default: module.Exports })));
+const LinkedIn = lazy(() => import('./features/LinkedIn').then(module => ({ default: module.LinkedIn })));
+const Profile = lazy(() => import('./features/Profile').then(module => ({ default: module.Profile })));
+const AdminUserHistory = lazy(() => import('./features/AdminUserHistory').then(module => ({ default: module.AdminUserHistory })));
+const AdminUsers = lazy(() => import('./features/AdminUsers').then(module => ({ default: module.AdminUsers })));
 
 // --- 3D Components for Sidebar ---
 
@@ -119,10 +121,11 @@ interface UserMenuPopupProps {
   theme: string;
   toggleTheme: () => void;
   onOpenShortcuts: () => void;
+  style?: React.CSSProperties;
 }
 
 // User Menu Popup
-const UserMenuPopup: React.FC<UserMenuPopupProps> = ({ isOpen, onClose, collapsed, theme, toggleTheme, onOpenShortcuts }) => {
+const UserMenuPopup: React.FC<UserMenuPopupProps> = ({ isOpen, onClose, collapsed, theme, toggleTheme, onOpenShortcuts, style }) => {
     const { billingInfo } = useBilling({ autoLoad: true });
     
     if (!isOpen) return null;
@@ -131,52 +134,59 @@ const UserMenuPopup: React.FC<UserMenuPopupProps> = ({ isOpen, onClose, collapse
 
     return (
         <>
-            <div className="fixed inset-0 z-40" onClick={onClose} />
-            <div className={`
-                absolute bottom-20 left-4 z-50 w-72 perspective-[1000px] animate-in fade-in slide-in-from-bottom-4 duration-300
-                ${collapsed ? 'left-16' : 'left-4'}
-            `}>
-                <div className="card-3d bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 shadow-2xl">
-                    <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100 dark:border-slate-700/50">
-                        <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm">
+            <div className="fixed inset-0 z-40 bg-transparent" onClick={onClose} />
+            <div 
+              className="fixed bottom-20 z-50 w-80 perspective-[1000px] animate-in fade-in slide-in-from-bottom-4 duration-300"
+              style={style}
+            >
+                <div className="card-3d bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 shadow-2xl ring-1 ring-slate-900/5">
+                    <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100 dark:border-slate-700/50">
+                        <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-base shadow-inner">
                             AJ
                         </div>
-                        <div>
-                            <h4 className="font-bold text-slate-800 dark:text-white">Alex Johnson</h4>
-                            <p className="text-xs text-slate-500">alex@leadgen.pro</p>
+                        <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-slate-800 dark:text-white truncate">Alex Johnson</h4>
+                            <p className="text-xs text-slate-500 truncate">alex@leadgen.pro</p>
                         </div>
-                        <Badge3D variant="purple" className="ml-auto text-[10px]">PRO</Badge3D>
+                        <Badge3D variant="purple" className="text-[10px] px-2 py-0.5">PRO</Badge3D>
                     </div>
 
-                    <div className="space-y-3 mb-4">
-                        <div className="flex justify-between items-center text-xs font-medium text-slate-600 dark:text-slate-300">
-                             <span className="flex items-center gap-1"><Zap size={12} className="text-amber-500" /> Credits</span>
-                             <span>{billingInfo ? billingInfo.credits_used.toLocaleString() : '0'} / {billingInfo ? billingInfo.credits_limit.toLocaleString() : '0'}</span>
+                    <div className="space-y-4 mb-5">
+                        <div className="space-y-2">
+                           <div className="flex justify-between items-center text-xs font-medium text-slate-600 dark:text-slate-300">
+                                <span className="flex items-center gap-1"><Zap size={12} className="text-amber-500 fill-amber-500" /> Credits</span>
+                                <span>{billingInfo ? billingInfo.credits_used.toLocaleString() : '0'} / {billingInfo ? billingInfo.credits_limit.toLocaleString() : '0'}</span>
+                           </div>
+                           <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
+                                <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.4)]" style={{ width: `${creditsPercent}%` }} />
+                           </div>
                         </div>
-                        <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                             <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500" style={{ width: `${creditsPercent}%` }} />
-                        </div>
-                        <Button3D variant="outline" className="w-full text-xs h-8">Upgrade Plan</Button3D>
+                        <Button3D variant="outline" className="w-full text-xs h-9 justify-center border-slate-300 dark:border-slate-600">Upgrade Plan</Button3D>
                     </div>
 
                     {/* Preferences Section */}
                     <div className="space-y-1 mb-2 pt-2 border-t border-slate-100 dark:border-slate-700/50">
                        <button 
                           onClick={toggleTheme}
-                          className="w-full flex items-center gap-3 p-2 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                          className="w-full flex items-center gap-3 p-2.5 rounded-xl text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
                        >
-                          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                          {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                          <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors">
+                             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                          </div>
+                          <span className="font-medium">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                        </button>
                        <button 
                           onClick={onOpenShortcuts}
-                          className="w-full flex items-center gap-3 p-2 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                          className="w-full flex items-center gap-3 p-2.5 rounded-xl text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
                        >
-                          <Keyboard size={16} /> Keyboard Shortcuts
+                          <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors">
+                             <Keyboard size={16} />
+                          </div>
+                          <span className="font-medium">Keyboard Shortcuts</span>
                        </button>
                     </div>
 
-                    <button className="w-full flex items-center gap-2 p-2 rounded-lg text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors border-t border-slate-100 dark:border-slate-700/50 pt-3 mt-1">
+                    <button className="w-full flex items-center gap-2 p-2.5 rounded-xl text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors border-t border-slate-100 dark:border-slate-700/50 mt-2 font-medium">
                         <LogOut size={16} /> Sign Out
                     </button>
                 </div>
@@ -184,6 +194,20 @@ const UserMenuPopup: React.FC<UserMenuPopupProps> = ({ isOpen, onClose, collapse
         </>
     );
 };
+
+const LoadingSpinner = () => (
+  <div className="h-full w-full flex flex-col items-center justify-center min-h-[60vh] animate-enter">
+    <div className="perspective-[1000px]">
+      <div className="relative w-16 h-16 transform-style-3d animate-[spin_3s_linear_infinite]">
+        <div className="absolute inset-0 border-4 border-indigo-500/30 rounded-full"></div>
+        <div className="absolute inset-0 border-4 border-transparent border-t-indigo-500 rounded-full animate-spin"></div>
+        <div className="absolute inset-4 border-4 border-purple-500/30 rounded-full"></div>
+        <div className="absolute inset-4 border-4 border-transparent border-b-purple-500 rounded-full animate-[spin_2s_linear_infinite_reverse]"></div>
+      </div>
+    </div>
+    <p className="mt-4 text-sm font-medium text-slate-400 animate-pulse">Loading Module...</p>
+  </div>
+);
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
@@ -217,11 +241,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const visibleAdminItems = ADMIN_NAV_ITEMS.filter(item => checkAccess(item.allowedRoles));
   
-  // Responsive logic: 
-  // On mobile, if menu is open, we ignore 'collapsed' state for width purposes to ensure it displays fully.
-  // On desktop, 'collapsed' state toggles via hover.
-  const isSidebarCollapsed = collapsed && !mobileMenuOpen;
+  // Responsive logic
+  const isSidebarCollapsed = collapsed && !mobileMenuOpen && !userMenuOpen;
   const sidebarWidth = isSidebarCollapsed ? 'w-[80px]' : 'w-[260px]';
+
+  // Calculate popup position based on sidebar state
+  const popupLeft = isSidebarCollapsed ? 96 : 280; 
 
   return (
     <div className="flex h-screen bg-[#f1f5f9] dark:bg-[#020617] overflow-hidden selection:bg-indigo-500/30 transition-colors duration-300 font-sans">
@@ -353,17 +378,19 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 )}
              </button>
           </div>
-
-          <UserMenuPopup 
-            isOpen={userMenuOpen} 
-            onClose={() => setUserMenuOpen(false)} 
-            collapsed={isSidebarCollapsed}
-            theme={theme}
-            toggleTheme={toggleTheme}
-            onOpenShortcuts={() => { setShortcutsOpen(true); setUserMenuOpen(false); }}
-          />
         </div>
       </aside>
+
+      {/* User Menu Popup (Rendered outside aside to prevent backdrop clipping) */}
+      <UserMenuPopup 
+        isOpen={userMenuOpen} 
+        onClose={() => setUserMenuOpen(false)} 
+        collapsed={isSidebarCollapsed}
+        theme={theme}
+        toggleTheme={toggleTheme}
+        onOpenShortcuts={() => { setShortcutsOpen(true); setUserMenuOpen(false); }}
+        style={{ left: window.innerWidth < 768 ? '16px' : `${popupLeft}px` }}
+      />
 
       {/* Main Content Area */}
       <main 
@@ -389,7 +416,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {/* Content Scroll Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 scroll-smooth w-full">
           <div className="max-w-[1600px] mx-auto w-full">
-             {children}
+             <Suspense fallback={<LoadingSpinner />}>
+                {children}
+             </Suspense>
           </div>
         </div>
       </main>

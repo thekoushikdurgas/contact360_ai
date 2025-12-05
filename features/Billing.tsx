@@ -46,33 +46,39 @@ const CurrentSubscription: React.FC<{ billingInfo: BillingInfo | null, planName?
         {/* Background Decoration */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-        <div className="flex flex-col sm:flex-row justify-between items-start mb-6 relative z-10 gap-2">
-          <div>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 relative z-10 gap-6">
+          <div className="flex-1">
             <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                <Zap size={12} className="text-amber-500" /> Current Subscription
             </div>
             <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100">{planName || 'Unknown Plan'}</h2>
             <p className="text-slate-500 dark:text-slate-400 mt-1 capitalize">{billingInfo.subscription_period} billing • Renews {new Date(billingInfo.renewal_date).toLocaleDateString()}</p>
           </div>
-          <Badge3D variant="emerald" className="px-3 py-1 text-sm shadow-emerald-500/20 self-start sm:self-center">Active</Badge3D>
-        </div>
-
-        <div className="mb-8 relative z-10">
-          <div className="flex justify-between text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">
-            <span>Credit Usage</span>
-            <span className="text-xs text-slate-500 font-normal self-end">{billingInfo.credits_limit - billingInfo.credits_used} remaining</span>
+          
+          {/* Credit Usage Box (Top Right) */}
+          <div className="w-full lg:w-[45%] bg-slate-50/80 dark:bg-slate-900/40 rounded-xl p-4 border border-slate-200/60 dark:border-slate-700/60 shadow-inner">
+             <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Credit Usage</span>
+                <Badge3D variant="emerald" className="text-[10px] px-2 py-0.5">Active</Badge3D>
+             </div>
+             
+             <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-2">
+                <div 
+                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.4)] transition-all duration-1000 ease-out relative" 
+                  style={{ width: `${usagePercentage}%` }} 
+                >
+                   <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                </div>
+             </div>
+             
+             <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+                <span><span className="text-slate-800 dark:text-white font-bold">{billingInfo.credits_used.toLocaleString()}</span> used</span>
+                <span>{billingInfo.credits_limit.toLocaleString()} monthly limit</span>
+             </div>
+             <div className="text-right text-[10px] text-slate-400 mt-1">
+                {(billingInfo.credits_limit - billingInfo.credits_used).toLocaleString()} remaining
+             </div>
           </div>
-          <div className="w-full h-4 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden mb-2 shadow-inner border border-slate-200 dark:border-slate-600">
-            <div 
-              className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)] transition-all duration-1000 ease-out relative" 
-              style={{ width: `${usagePercentage}%` }} 
-            >
-               <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
-            </div>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 flex items-center gap-2">
-            <span className="font-semibold text-slate-700 dark:text-slate-200">{billingInfo.credits_used.toLocaleString()}</span> used of <span className="font-semibold text-slate-700 dark:text-slate-200">{billingInfo.credits_limit.toLocaleString()}</span> monthly limit.
-          </p>
         </div>
 
         <div className="mt-auto flex flex-col sm:flex-row gap-4 relative z-10">

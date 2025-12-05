@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card3D, Button3D, Input3D, Modal3D, Checkbox3D, Badge3D, TiltRow, Select3D } from '../components/UI';
+import { Card3D, Button3D, Input3D, Modal3D, Checkbox3D, Badge3D, TiltRow, Select3D, TabGroup } from '../components/UI';
 import { SkeletonBlock } from '../components/Skeleton';
 import { 
   User, Mail, Camera, Lock, CheckCircle, X, AlertCircle, 
@@ -31,7 +31,7 @@ const MOCK_TEAM_MEMBERS = [
   { id: '4', name: 'Emily Davis', email: 'emily@leadgen.pro', role: 'Viewer', status: 'active', avatar: 'https://ui-avatars.com/api/?name=Emily+Davis&background=f43f5e&color=fff' },
 ];
 
-type SettingsTab = 'profile' | 'team' | 'appearance' | 'notifications' | 'security' | 'integrations' | 'billing';
+type SettingsTab = 'My Profile' | 'Team' | 'Appearance' | 'Notifications' | 'Security' | 'API Keys' | 'Billing';
 
 export const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ export const Profile: React.FC = () => {
   const { role, isAdmin } = useRole();
   
   // State
-  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
+  const [activeTab, setActiveTab] = useState<string>('My Profile');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -93,14 +93,14 @@ export const Profile: React.FC = () => {
     }, 1500);
   };
 
-  const navItems = [
-    { id: 'profile', label: 'My Profile', icon: User },
-    ...(isAdmin ? [{ id: 'team', label: 'Team', icon: Users }] : []),
-    { id: 'appearance', label: 'Appearance', icon: Palette },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'integrations', label: 'API Keys', icon: Key },
-    { id: 'billing', label: 'Billing', icon: CreditCard },
+  const tabs: SettingsTab[] = [
+    'My Profile',
+    ...(isAdmin ? ['Team'] as SettingsTab[] : []),
+    'Appearance',
+    'Notifications',
+    'Security',
+    'API Keys',
+    'Billing'
   ];
 
   const renderContent = () => {
@@ -127,9 +127,17 @@ export const Profile: React.FC = () => {
     }
 
     switch (activeTab) {
-      case 'profile':
+      case 'My Profile':
         return (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Header */}
+            <div className="flex items-center gap-3 pb-2">
+               <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-500">
+                  <User size={24} />
+               </div>
+               <h2 className="text-xl font-bold text-slate-800 dark:text-white">My Profile</h2>
+            </div>
+
             {/* Avatar Section */}
             <div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-slate-100 dark:border-slate-700/50">
                <div className="relative group perspective-[1000px]">
@@ -190,7 +198,7 @@ export const Profile: React.FC = () => {
           </div>
         );
 
-      case 'team':
+      case 'Team':
         return (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
              <div className="flex flex-col sm:flex-row justify-between items-end gap-4 p-6 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-2xl border border-indigo-100 dark:border-indigo-500/10">
@@ -198,7 +206,7 @@ export const Profile: React.FC = () => {
                    <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Team Management</h3>
                    <p className="text-sm text-slate-500 dark:text-slate-400">Manage your team members and their permissions.</p>
                 </div>
-                <Button3D variant="primary" iconName="user-plus" onClick={() => setInviteModalOpen(true)} className="shadow-indigo-500/20">
+                <Button3D variant="primary" iconName="plus" onClick={() => setInviteModalOpen(true)} className="shadow-indigo-500/20">
                    Invite Member
                 </Button3D>
              </div>
@@ -257,7 +265,7 @@ export const Profile: React.FC = () => {
           </div>
         );
 
-      case 'appearance':
+      case 'Appearance':
         return (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Theme Toggle */}
@@ -345,7 +353,7 @@ export const Profile: React.FC = () => {
           </div>
         );
 
-      case 'notifications':
+      case 'Notifications':
         return (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
              {[
@@ -377,7 +385,7 @@ export const Profile: React.FC = () => {
           </div>
         );
 
-      case 'security':
+      case 'Security':
         return (
            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-200 dark:border-slate-700/50">
@@ -439,7 +447,7 @@ export const Profile: React.FC = () => {
            </div>
         );
 
-      case 'integrations':
+      case 'API Keys':
          return (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                <div className="flex justify-between items-center mb-2">
@@ -481,7 +489,7 @@ export const Profile: React.FC = () => {
             </div>
          );
       
-      case 'billing':
+      case 'Billing':
          return (
             <div className="flex flex-col items-center justify-center py-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
                <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-indigo-500/30">
@@ -514,7 +522,7 @@ export const Profile: React.FC = () => {
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">Manage your account preferences and configurations.</p>
         </div>
-        {activeTab === 'profile' && (
+        {activeTab === 'My Profile' && (
            <Button3D variant="primary" onClick={handleSave} disabled={isSaving || isLoading} className="shadow-indigo-500/20 min-w-[140px]">
               {isSaving ? 'Saving...' : 'Save Changes'}
            </Button3D>
@@ -528,22 +536,28 @@ export const Profile: React.FC = () => {
         </div>
       )}
 
-      {/* Horizontal Tabs Navigation */}
+      {/* 3D Tabs Navigation */}
       <div className="perspective-container sticky top-4 z-30">
-         <div className="card-3d bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700/60 rounded-2xl p-2 shadow-3d-light dark:shadow-3d flex overflow-x-auto no-scrollbar gap-1 md:gap-2">
-            {navItems.map((item) => (
+         <div className="card-3d bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700/60 rounded-2xl p-2 shadow-3d-light dark:shadow-3d flex overflow-x-auto no-scrollbar gap-1">
+            {tabs.map((tab) => (
                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id as SettingsTab)}
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
                   className={`
-                     flex items-center gap-2 px-3 md:px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap flex-1 justify-center
-                     ${activeTab === item.id 
-                        ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/25 scale-[1.02]' 
+                     flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap flex-1 justify-center
+                     ${activeTab === tab 
+                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 scale-[1.02]' 
                         : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200'}
                   `}
                >
-                  <item.icon size={16} />
-                  {item.label}
+                  {tab === 'My Profile' && <User size={16} />}
+                  {tab === 'Team' && <Users size={16} />}
+                  {tab === 'Appearance' && <Palette size={16} />}
+                  {tab === 'Notifications' && <Bell size={16} />}
+                  {tab === 'Security' && <Shield size={16} />}
+                  {tab === 'API Keys' && <Key size={16} />}
+                  {tab === 'Billing' && <CreditCard size={16} />}
+                  {tab}
                </button>
             ))}
          </div>
@@ -552,16 +566,6 @@ export const Profile: React.FC = () => {
       {/* Content Area */}
       <div className="perspective-container">
          <div className="card-3d bg-white dark:bg-slate-800/60 backdrop-blur-xl border border-slate-200 dark:border-slate-700/60 rounded-2xl shadow-3d-light dark:shadow-3d p-6 md:p-10 min-h-[500px]">
-            {/* Context Title */}
-            {!isLoading && (
-              <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-8 flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-700/50">
-                 <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-500">
-                    {React.createElement(navItems.find(i => i.id === activeTab)!.icon, { size: 24 })}
-                 </div>
-                 {navItems.find(i => i.id === activeTab)?.label}
-              </h2>
-            )}
-            
             {renderContent()}
          </div>
       </div>
