@@ -20,7 +20,7 @@ export const Card3D: React.FC<CardProps> = ({ children, className = '', title, i
         {/* Glossy Overlay */}
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent pointer-events-none dark:from-white/5" />
         
-        {(title || Icon) && (
+        {(title || Icon || action) && (
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 relative z-10 gap-3 sm:gap-0 shrink-0">
             <div className="flex items-center gap-3">
               {Icon && (
@@ -30,7 +30,7 @@ export const Card3D: React.FC<CardProps> = ({ children, className = '', title, i
               )}
               {title && <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{title}</h3>}
             </div>
-            {action && <div className="w-full sm:w-auto mt-2 sm:mt-0">{action}</div>}
+            {action && <div className="w-full sm:w-auto mt-2 sm:mt-0 flex justify-end">{action}</div>}
           </div>
         )}
         <div className="relative z-10 h-full w-full">
@@ -52,15 +52,15 @@ interface ModalProps {
 export const Modal3D: React.FC<ModalProps> = ({ isOpen, onClose, title, children, className = '' }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300" onClick={onClose} />
-      <div className={`relative z-10 w-full max-w-lg my-8 animate-enter ${className}`}>
-        <Card3D title={title} className="bg-white dark:bg-slate-900 shadow-2xl !h-auto" action={
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300" onClick={onClose} />
+      <div className={`relative z-10 w-[95%] sm:w-full max-w-lg my-auto animate-enter ${className}`}>
+        <Card3D title={title} className="bg-white dark:bg-slate-900 shadow-2xl !h-auto max-h-[90dvh] flex flex-col" action={
           <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500">
             <X size={18} />
           </button>
         }>
-          <div className="max-h-[80vh] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="overflow-y-auto pr-2 custom-scrollbar max-h-[calc(90dvh-100px)]">
              {children}
           </div>
         </Card3D>
@@ -78,7 +78,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button3D: React.FC<ButtonProps> = ({ variant = 'primary', iconName, children, className = '', ...props }) => {
   const Icon = iconName ? ICON_MAP[iconName] : null;
   
-  const baseStyles = "relative overflow-hidden font-medium rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2";
+  const baseStyles = "relative overflow-hidden font-medium rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 select-none touch-manipulation";
   
   const variants = {
     primary: "bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-[0_5px_15px_-5px_rgba(99,102,241,0.5),inset_0_-2px_0_0_rgba(0,0,0,0.2)] border-t border-indigo-400 hover:brightness-110",
@@ -111,7 +111,7 @@ export const Input3D: React.FC<Input3DProps> = ({ label, className = '', contain
       {label && <label className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-1">{label}</label>}
       <div className="relative group">
         <input
-          className={`w-full bg-white/50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 rounded-xl px-4 py-2.5 outline-none border border-slate-200 dark:border-slate-700 shadow-inner-3d-light dark:shadow-inner-3d focus:border-indigo-500/50 focus:shadow-[0_0_15px_-3px_rgba(99,102,241,0.3)] transition-all duration-300 placeholder:text-slate-400 dark:placeholder:text-slate-600 ${className}`}
+          className={`w-full bg-white/50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 rounded-xl px-4 py-2.5 outline-none border border-slate-200 dark:border-slate-700 shadow-inner-3d-light dark:shadow-inner-3d focus:border-indigo-500/50 focus:shadow-[0_0_15px_-3px_rgba(99,102,241,0.3)] transition-all duration-300 placeholder:text-slate-400 dark:placeholder:text-slate-600 text-base md:text-sm ${className}`}
           {...props}
         />
         <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500/10 to-transparent opacity-0 group-focus-within:opacity-100 pointer-events-none transition-opacity duration-300" />
@@ -131,7 +131,7 @@ export const Select3D: React.FC<Select3DProps> = ({ label, options, className = 
       {label && <label className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-1">{label}</label>}
       <div className="relative group">
         <select
-          className="w-full appearance-none bg-white/50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 rounded-xl px-4 py-3 outline-none border border-slate-200 dark:border-slate-700 shadow-inner-3d-light dark:shadow-inner-3d focus:border-indigo-500/50 focus:shadow-[0_0_15px_-3px_rgba(99,102,241,0.3)] transition-all duration-300 cursor-pointer"
+          className="w-full appearance-none bg-white/50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 rounded-xl px-4 py-3 outline-none border border-slate-200 dark:border-slate-700 shadow-inner-3d-light dark:shadow-inner-3d focus:border-indigo-500/50 focus:shadow-[0_0_15px_-3px_rgba(99,102,241,0.3)] transition-all duration-300 cursor-pointer text-base md:text-sm"
           {...props}
         >
           {options.map((opt) => (
@@ -152,7 +152,7 @@ export const Select3D: React.FC<Select3DProps> = ({ label, options, className = 
 
 export const Checkbox3D: React.FC<{ checked?: boolean; onChange?: () => void; label?: string }> = ({ checked, onChange, label }) => {
   return (
-    <div className="flex items-center gap-2 cursor-pointer group" onClick={onChange}>
+    <div className="flex items-center gap-2 cursor-pointer group touch-manipulation" onClick={onChange}>
       <div 
         className={`
           w-5 h-5 rounded-md flex items-center justify-center transition-all duration-200 shadow-inner-3d-light dark:shadow-inner-3d border shrink-0
@@ -398,7 +398,7 @@ export const RangeSlider3D: React.FC<{
         <span>{formatLabel(value[0])}</span>
         <span>{formatLabel(value[1])}</span>
       </div>
-      <div className="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full shadow-inner cursor-pointer group" ref={sliderRef}>
+      <div className="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full shadow-inner cursor-pointer group touch-action-none" ref={sliderRef}>
         <div 
           className="absolute h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full opacity-90 shadow-[0_0_10px_rgba(99,102,241,0.4)]"
           style={{ 

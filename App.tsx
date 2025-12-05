@@ -127,6 +127,13 @@ interface UserMenuPopupProps {
 // User Menu Popup
 const UserMenuPopup: React.FC<UserMenuPopupProps> = ({ isOpen, onClose, collapsed, theme, toggleTheme, onOpenShortcuts, style }) => {
     const { billingInfo } = useBilling({ autoLoad: true });
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     
     if (!isOpen) return null;
 
@@ -136,8 +143,11 @@ const UserMenuPopup: React.FC<UserMenuPopupProps> = ({ isOpen, onClose, collapse
         <>
             <div className="fixed inset-0 z-40 bg-transparent" onClick={onClose} />
             <div 
-              className="fixed bottom-20 z-50 w-80 perspective-[1000px] animate-in fade-in slide-in-from-bottom-4 duration-300"
-              style={style}
+              className={`
+                fixed z-50 perspective-[1000px] animate-in fade-in slide-in-from-bottom-4 duration-300
+                w-full md:w-80 left-0 md:left-auto bottom-0 md:bottom-20 p-4 md:p-0
+              `}
+              style={!isMobile ? style : undefined}
             >
                 <div className="card-3d bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 shadow-2xl ring-1 ring-slate-900/5">
                     <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100 dark:border-slate-700/50">
@@ -249,7 +259,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const popupLeft = isSidebarCollapsed ? 96 : 280; 
 
   return (
-    <div className="flex h-screen bg-[#f1f5f9] dark:bg-[#020617] overflow-hidden selection:bg-indigo-500/30 transition-colors duration-300 font-sans">
+    <div className="flex h-[100dvh] bg-[#f1f5f9] dark:bg-[#020617] overflow-hidden selection:bg-indigo-500/30 transition-colors duration-300 font-sans">
       
       <ShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
 
@@ -389,7 +399,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         theme={theme}
         toggleTheme={toggleTheme}
         onOpenShortcuts={() => { setShortcutsOpen(true); setUserMenuOpen(false); }}
-        style={{ left: window.innerWidth < 768 ? '16px' : `${popupLeft}px` }}
+        style={{ left: `${popupLeft}px` }}
       />
 
       {/* Main Content Area */}
@@ -414,7 +424,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </header>
 
         {/* Content Scroll Area */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 scroll-smooth w-full">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-8 scroll-smooth w-full">
           <div className="max-w-[1600px] mx-auto w-full">
              <Suspense fallback={<LoadingSpinner />}>
                 {children}

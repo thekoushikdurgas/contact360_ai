@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card3D, Button3D, Badge3D, Input3D, Modal3D, RangeSlider3D, MultiSelect3D, Checkbox3D, TabGroup, TiltRow } from '../components/UI';
+import { Card3D, Button3D, Badge3D, Input3D, Modal3D, RangeSlider3D, MultiSelect3D, Checkbox3D, TiltRow } from '../components/UI';
 import { SkeletonGridCard, SkeletonTable3D } from '../components/Skeleton';
 import { generateCompanySummary } from '../services/geminiService';
 import { Company } from '../types';
@@ -8,10 +8,10 @@ import { MOCK_COMPANIES } from '../constants';
 import { useNavigate } from 'react-router-dom';
 import { 
   Globe, MapPin, Users, DollarSign, Sparkles, Plus, 
-  Search, ExternalLink, Filter, X, RotateCcw,
+  Search, Filter, X, RotateCcw,
   FileSpreadsheet, Upload, Download, ChevronLeft, ChevronRight,
   Factory, Linkedin, LayoutGrid, List as ListIcon, ChevronDown,
-  Building2, Monitor, ShieldCheck, Trophy
+  Building2, Monitor, Save, Mail, Trash2
 } from 'lucide-react';
 
 // --- Helper Components ---
@@ -22,38 +22,63 @@ const FilterSection: React.FC<{
   count?: number;
   isOpen?: boolean;
   children: React.ReactNode;
-}> = ({ title, icon: Icon, count, isOpen: defaultOpen = false, children }) => {
+  onClear?: () => void;
+  dotColor?: string;
+}> = ({ title, icon: Icon, count, isOpen: defaultOpen = false, children, onClear, dotColor }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const hasActive = count !== undefined && count > 0;
 
   return (
     <div className={`
-      group rounded-xl transition-all duration-300 border mb-2
+      group rounded-xl transition-all duration-300 border mb-3 overflow-hidden relative
       ${isOpen || hasActive 
-        ? 'bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 shadow-sm' 
-        : 'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/40'
+        ? 'bg-white/60 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 shadow-sm' 
+        : 'bg-transparent border-transparent hover:bg-white/40 dark:hover:bg-slate-800/30'
       }
     `}>
+      {/* Active Indicator Line */}
+      {hasActive && (
+        <div className={`absolute left-0 top-0 bottom-0 w-1 ${dotColor || 'bg-indigo-500'}`} />
+      )}
+
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-3 text-left"
+        className="w-full flex items-center justify-between p-3 pl-4 text-left relative z-10"
       >
-        <div className="flex items-center gap-2.5">
-          {Icon && <Icon size={16} className={hasActive ? 'text-indigo-500' : 'text-slate-400 dark:text-slate-500'} />}
-          <span className={`font-medium text-sm ${hasActive ? 'text-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-400'}`}>
+        <div className="flex items-center gap-3">
+          {Icon && (
+            <div className={`p-1.5 rounded-lg ${hasActive ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}>
+               <Icon size={14} />
+            </div>
+          )}
+          <span className={`font-semibold text-sm ${hasActive ? 'text-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-400'}`}>
             {title}
           </span>
-          {hasActive && (
+          {hasActive && !dotColor && (
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
               {count}
             </span>
           )}
         </div>
-        <ChevronDown size={14} className={`text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <div className="flex items-center gap-2">
+           {hasActive && onClear && (
+             <div 
+               role="button"
+               onClick={(e) => { e.stopPropagation(); onClear(); }}
+               className="p-1.5 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-slate-400 hover:text-rose-500 rounded-lg transition-colors"
+               title="Clear section"
+             >
+               <X size={12} />
+             </div>
+           )}
+           <div className={`p-1 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+              <ChevronDown size={14} className="text-slate-400" />
+           </div>
+        </div>
       </button>
       
-      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-        <div className="px-3 pb-3 pt-0">
+      <div className={`transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="px-4 pb-4 pt-0">
            {children}
         </div>
       </div>
@@ -91,7 +116,7 @@ export const Companies: React.FC = () => {
     const timer = setTimeout(() => {
        setCompanies(MOCK_COMPANIES);
        setIsLoading(false);
-    }, 1000);
+    }, 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -155,6 +180,14 @@ export const Companies: React.FC = () => {
     setSelectedIds(newSet);
   };
 
+  const toggleAll = () => {
+    if (selectedIds.size === filteredCompanies.length && filteredCompanies.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredCompanies.map(c => c.uuid)));
+    }
+  };
+
   const formatCurrency = (val: number) => {
     if (val >= 1000000000) return `$${(val / 1000000000).toFixed(1)}B`;
     if (val >= 1000000) return `$${(val / 1000000).toFixed(0)}M`;
@@ -167,46 +200,107 @@ export const Companies: React.FC = () => {
     filters.technologies.length + 
     (filters.revenueMin > 0 || filters.revenueMax < 1000 ? 1 : 0);
 
+  const resetFilters = () => setFilters({
+    industries: [], countries: [], technologies: [], 
+    revenueMin: 0, revenueMax: 1000, employeesMin: 0, employeesMax: 5000
+  });
+
   return (
-    <div className="flex h-[calc(100dvh-80px)] md:h-[calc(100vh-64px)] overflow-hidden gap-6 pb-2 relative">
+    <div className="flex h-[calc(100dvh-80px)] md:h-[calc(100vh-100px)] gap-6 overflow-hidden relative w-full max-w-full">
       
+      {/* Floating Action Toolbar (Bottom Center) */}
+      <div className={`
+        fixed bottom-10 left-1/2 -translate-x-1/2 z-[60] transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) w-auto max-w-[90vw]
+        ${selectedIds.size > 0 ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-24 opacity-0 scale-90 pointer-events-none'}
+      `}>
+        <div className="flex items-center gap-1 p-1.5 pl-4 rounded-2xl bg-slate-900/90 dark:bg-white/90 backdrop-blur-xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] border border-white/20 dark:border-black/10 text-white dark:text-slate-900 ring-1 ring-black/5 dark:ring-white/20">
+          <div className="mr-3 font-bold text-sm whitespace-nowrap flex items-center gap-2">
+            <div className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] text-white">
+              {selectedIds.size}
+            </div>
+            Selected
+          </div>
+          
+          <div className="h-6 w-px bg-white/20 dark:bg-black/10 mx-1" />
+
+          <Button3D variant="ghost" className="text-white dark:text-slate-900 hover:bg-white/20 dark:hover:bg-black/10 h-8 px-3 text-xs rounded-xl">
+            <Save size={14} className="mr-2" /> Save List
+          </Button3D>
+          <Button3D variant="ghost" className="text-white dark:text-slate-900 hover:bg-white/20 dark:hover:bg-black/10 h-8 px-3 text-xs rounded-xl">
+            <Download size={14} className="mr-2" /> Export
+          </Button3D>
+          
+          <div className="h-6 w-px bg-white/20 dark:bg-black/10 mx-1" />
+
+          <button 
+            onClick={() => setSelectedIds(new Set())}
+            className="w-8 h-8 flex items-center justify-center hover:bg-rose-500/20 hover:text-rose-400 rounded-xl transition-all"
+            title="Clear Selection"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      </div>
+
       {/* --- Mobile Filter Overlay --- */}
       {isFilterOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-slate-900/60 z-40 lg:hidden backdrop-blur-sm animate-in fade-in"
           onClick={() => setIsFilterOpen(false)}
         />
       )}
 
       {/* --- Filter Sidebar --- */}
       <div className={`
-        fixed inset-y-0 left-0 z-40 w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-r border-slate-200 dark:border-slate-700 shadow-2xl transition-transform duration-300 md:relative md:transform-none md:w-80 md:bg-transparent md:border-none md:shadow-none flex flex-col
-        ${isFilterOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        flex-shrink-0 flex flex-col h-full bg-white/80 dark:bg-slate-900/80 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none border-r lg:border-none border-slate-200 dark:border-slate-700/50 
+        lg:pr-2 pt-1 animate-enter z-50 lg:z-0
+        transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
+        fixed inset-y-0 left-0 w-[300px] shadow-2xl lg:shadow-none lg:relative lg:translate-x-0 lg:w-[280px]
+        ${isFilterOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="md:hidden p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-          <span className="font-bold text-lg text-slate-800 dark:text-white">Filters</span>
-          <button onClick={() => setIsFilterOpen(false)}><X size={20} className="text-slate-500" /></button>
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between mb-4 pr-2 p-4 lg:p-0">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30">
+               <Filter size={16} />
+            </div>
+            <div>
+              <h2 className="font-bold text-slate-800 dark:text-white leading-tight">Filters</h2>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{activeFilterCount} Active</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            {activeFilterCount > 0 && (
+              <button 
+                onClick={resetFilters}
+                className="text-[10px] font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 px-2 py-1 rounded-lg transition-colors"
+              >
+                CLEAR
+              </button>
+            )}
+            <button className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" onClick={() => setIsFilterOpen(false)}>
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-1 md:pr-2 space-y-4 pb-20 scrollbar-hide">
-          <div className="flex items-center gap-2 mb-2 pl-1">
-             <Filter size={18} className="text-indigo-500" />
-             <h2 className="font-bold text-slate-800 dark:text-slate-100">Smart Filters</h2>
-             {activeFilterCount > 0 && <Badge3D variant="indigo">{activeFilterCount}</Badge3D>}
+        <div className="flex-1 overflow-y-auto px-4 lg:px-0 lg:pr-1 space-y-1 pb-24 scroll-smooth custom-scrollbar">
+          {/* Global Search Input */}
+          <div className="mb-4 relative group perspective-[1000px]">
+             <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl opacity-0 group-focus-within:opacity-20 blur transition-opacity duration-300" />
+             <div className="relative bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-inner-3d-light dark:shadow-inner-3d flex items-center">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
+                <input 
+                  type="text" 
+                  placeholder="Search companies..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-4 py-3 bg-transparent rounded-xl outline-none text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 font-medium"
+                />
+             </div>
           </div>
 
-          <div className="relative group mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search companies..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-3 bg-white dark:bg-slate-800 rounded-xl outline-none text-sm border border-slate-200 dark:border-slate-700 focus:border-indigo-500 shadow-inner-3d-light dark:shadow-inner-3d transition-all"
-            />
-          </div>
-
-          <FilterSection title="Industry" icon={Factory} count={filters.industries.length} isOpen>
+          <FilterSection title="Industry" icon={Factory} count={filters.industries.length} isOpen onClear={() => setFilters(prev => ({...prev, industries: []}))}>
             <MultiSelect3D 
               items={filters.industries}
               onAdd={(i) => setFilters(prev => ({...prev, industries: [...prev.industries, i]}))}
@@ -217,8 +311,8 @@ export const Companies: React.FC = () => {
             />
           </FilterSection>
 
-          <FilterSection title="Revenue" icon={DollarSign} isOpen>
-             <div className="px-2">
+          <FilterSection title="Revenue" icon={DollarSign} dotColor="bg-emerald-500" isOpen>
+             <div className="px-2 pb-2">
                 <RangeSlider3D 
                   min={0} max={1000} step={10}
                   value={[filters.revenueMin, filters.revenueMax]}
@@ -228,8 +322,8 @@ export const Companies: React.FC = () => {
              </div>
           </FilterSection>
 
-          <FilterSection title="Employees" icon={Users}>
-             <div className="px-2">
+          <FilterSection title="Company Size" icon={Users} dotColor="bg-blue-500">
+             <div className="px-2 pb-2">
                 <RangeSlider3D 
                   min={0} max={10000} step={100}
                   value={[filters.employeesMin, filters.employeesMax]}
@@ -239,7 +333,7 @@ export const Companies: React.FC = () => {
              </div>
           </FilterSection>
 
-          <FilterSection title="Technology" icon={Monitor} count={filters.technologies.length}>
+          <FilterSection title="Technology" icon={Monitor} count={filters.technologies.length} onClear={() => setFilters(prev => ({...prev, technologies: []}))}>
              <MultiSelect3D 
                items={filters.technologies}
                onAdd={(i) => setFilters(prev => ({...prev, technologies: [...prev.technologies, i]}))}
@@ -250,7 +344,7 @@ export const Companies: React.FC = () => {
              />
           </FilterSection>
 
-          <FilterSection title="Location" icon={MapPin} count={filters.countries.length}>
+          <FilterSection title="Location" icon={MapPin} count={filters.countries.length} dotColor="bg-rose-500" onClear={() => setFilters(prev => ({...prev, countries: []}))}>
              <MultiSelect3D 
                items={filters.countries}
                onAdd={(i) => setFilters(prev => ({...prev, countries: [...prev.countries, i]}))}
@@ -260,68 +354,61 @@ export const Companies: React.FC = () => {
                color="emerald"
              />
           </FilterSection>
-
-          <Button3D variant="outline" onClick={() => setFilters({
-            industries: [], countries: [], technologies: [], 
-            revenueMin: 0, revenueMax: 1000, employeesMin: 0, employeesMax: 5000
-          })} className="w-full text-sm">
-            <RotateCcw size={14} className="mr-2" /> Reset All Filters
-          </Button3D>
         </div>
       </div>
 
       {/* --- Main Content --- */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden animate-enter" style={{ animationDelay: '200ms' }}>
+      <div className="flex-1 flex flex-col min-w-0 h-full animate-enter" style={{ animationDelay: '100ms' }}>
         
-        {/* Header Actions */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pr-2">
-           <div className="flex items-center gap-3 w-full md:w-auto">
-             <button 
-                onClick={() => setIsFilterOpen(true)}
-                className="md:hidden p-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500"
-             >
-                <Filter size={20} />
-             </button>
-             <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-               Companies <span className="text-slate-400 font-normal text-lg">({filteredCompanies.length})</span>
+        {/* Top Bar: Actions & Toggle */}
+        <div className="flex flex-col xl:flex-row justify-between items-end xl:items-center gap-4 mb-4 pr-2 pt-2">
+           <div>
+             <h1 className="text-2xl font-bold text-slate-800 dark:text-white hidden lg:block">
+               Companies
              </h1>
+             <p className="text-xs text-slate-500 dark:text-slate-400 hidden lg:block">{filteredCompanies.length} organizations found</p>
            </div>
 
-           <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
+           <div className="flex items-center gap-3 w-full xl:w-auto justify-end">
+              {/* Mobile Filter Toggle */}
+              <Button3D 
+                 variant="outline" 
+                 className="lg:hidden text-xs h-9 px-3" 
+                 onClick={() => setIsFilterOpen(true)}
+              >
+                <Filter size={14} className="mr-2" /> Filters
+                {activeFilterCount > 0 && <span className="ml-1 bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full text-[10px]">{activeFilterCount}</span>}
+              </Button3D>
+
               {/* View Toggle */}
-              <div className="bg-white dark:bg-slate-800 rounded-lg p-1 border border-slate-200 dark:border-slate-700 flex mr-2">
+              <div className="bg-white/80 dark:bg-slate-800/80 rounded-xl p-1 border border-slate-200 dark:border-slate-700/60 flex h-9 items-center backdrop-blur-md shadow-sm">
                 <button 
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                  className={`px-3 h-full flex items-center justify-center rounded-lg transition-all text-xs font-medium gap-2 ${viewMode === 'grid' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                 >
-                  <LayoutGrid size={18} />
+                  <LayoutGrid size={14} /> Grid
                 </button>
                 <button 
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                  className={`px-3 h-full flex items-center justify-center rounded-lg transition-all text-xs font-medium gap-2 ${viewMode === 'list' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                 >
-                  <ListIcon size={18} />
+                  <ListIcon size={14} /> List
                 </button>
               </div>
 
-              <Button3D variant="secondary" className="flex-1 md:flex-none text-sm" onClick={() => setModalType('bulk')}>
-                 <Upload size={16} className="mr-2" /> Import
-              </Button3D>
-              
-              {selectedIds.size > 0 && (
-                <Button3D variant="secondary" className="flex-1 md:flex-none text-sm text-indigo-600 dark:text-indigo-400">
-                  <Download size={16} className="mr-2" /> Export ({selectedIds.size})
-                </Button3D>
-              )}
+              <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
 
-              <Button3D variant="primary" className="flex-1 md:flex-none text-sm" onClick={() => setModalType('add')}>
-                 <Plus size={16} className="mr-2" /> Add Company
+              <Button3D variant="secondary" className="text-xs h-9 px-4 hidden sm:flex" onClick={() => setModalType('bulk')}>
+                 <Upload size={14} className="mr-2" /> Import
+              </Button3D>
+              <Button3D variant="primary" className="text-xs h-9 px-4 shadow-indigo-500/20" onClick={() => setModalType('add')}>
+                 <Plus size={14} className="mr-2" /> Add Company
               </Button3D>
            </div>
         </div>
 
         {/* Content View */}
-        <div className="flex-1 overflow-y-auto pr-2 pb-20 scroll-smooth">
+        <div className="flex-1 overflow-y-auto pr-2 pb-20 scroll-smooth custom-scrollbar">
           {isLoading ? (
              viewMode === 'grid' ? (
                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -338,7 +425,7 @@ export const Companies: React.FC = () => {
                    <div 
                      onClick={() => navigate(`/companies/${company.uuid}`)}
                      className={`
-                       card-3d h-full bg-white dark:bg-slate-800/60 backdrop-blur-xl border rounded-2xl p-5 shadow-3d-light dark:shadow-3d hover:shadow-3d-hover-light dark:hover:shadow-3d-hover hover:-translate-y-2 transition-all duration-300 flex flex-col relative overflow-hidden cursor-pointer
+                       card-3d h-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border rounded-2xl p-5 shadow-3d-light dark:shadow-3d hover:shadow-3d-hover-light dark:hover:shadow-3d-hover hover:-translate-y-2 transition-all duration-300 flex flex-col relative overflow-hidden cursor-pointer
                        ${selectedIds.has(company.uuid) ? 'border-indigo-500/50 ring-1 ring-indigo-500/30' : 'border-slate-200 dark:border-slate-700/60'}
                      `}
                    >
@@ -349,7 +436,7 @@ export const Companies: React.FC = () => {
                      <div className="flex justify-between items-start mb-4 relative z-10">
                         <div className="flex gap-3">
                            <div className={`
-                             w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-inner-3d-light dark:shadow-inner-3d
+                             w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-inner-3d-light dark:shadow-inner-3d transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6
                              bg-${company.logoColor || 'indigo'}-500
                            `}>
                              {company.name.substring(0, 2).toUpperCase()}
@@ -450,12 +537,24 @@ export const Companies: React.FC = () => {
             </div>
           ) : (
             // --- LIST VIEW ---
-            <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white/50 dark:bg-slate-900/40 shadow-inner-3d-light dark:shadow-inner-3d overflow-hidden flex flex-col">
-               <div className="overflow-x-auto">
+            <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white/50 dark:bg-slate-900/40 shadow-inner-3d-light dark:shadow-inner-3d overflow-hidden flex flex-col backdrop-blur-sm">
+               
+               {/* Query Metadata Bar */}
+               <div className="flex items-center justify-between px-4 py-2 border-b border-slate-200/60 dark:border-slate-700/60 bg-slate-50/50 dark:bg-slate-800/30 text-[10px] uppercase tracking-wider font-bold text-slate-400">
+                  <div className="flex items-center gap-4">
+                     <span>Strategy: Cursor-based</span>
+                     <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                     <span>Records: {filteredCompanies.length}</span>
+                  </div>
+               </div>
+
+               <div className="overflow-x-auto custom-scrollbar">
                  <table className="w-full text-left border-collapse min-w-[1000px]">
                    <thead className="sticky top-0 z-20 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold tracking-wider shadow-sm">
                      <tr>
-                       <th className="p-4 w-12 text-center"><Checkbox3D /></th>
+                       <th className="p-4 w-12 text-center">
+                          <Checkbox3D checked={selectedIds.size === filteredCompanies.length && filteredCompanies.length > 0} onChange={toggleAll} />
+                       </th>
                        <th className="p-4">Company</th>
                        <th className="p-4">Industry</th>
                        <th className="p-4">Location</th>
@@ -466,14 +565,18 @@ export const Companies: React.FC = () => {
                      </tr>
                    </thead>
                    <tbody className="divide-y divide-slate-200/60 dark:divide-slate-700/60 text-sm">
-                     {filteredCompanies.map(company => (
+                     {filteredCompanies.map(company => {
+                        const isSelected = selectedIds.has(company.uuid);
+                        return (
                        <TiltRow 
                          key={company.uuid} 
                          className="group hover:bg-white dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
+                         isSelected={isSelected}
                          onClick={() => navigate(`/companies/${company.uuid}`)}
                        >
-                         <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
-                           <Checkbox3D checked={selectedIds.has(company.uuid)} onChange={() => toggleSelection(company.uuid)} />
+                         <td className="p-4 text-center relative" onClick={(e) => e.stopPropagation()}>
+                           {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 rounded-r-full" />}
+                           <Checkbox3D checked={isSelected} onChange={() => toggleSelection(company.uuid)} />
                          </td>
                          <td className="p-4">
                            <div className="flex items-center gap-3">
@@ -486,7 +589,11 @@ export const Companies: React.FC = () => {
                              </div>
                            </div>
                          </td>
-                         <td className="p-4 text-slate-600 dark:text-slate-400">{company.industry}</td>
+                         <td className="p-4 text-slate-600 dark:text-slate-400">
+                            <span className="capitalize px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-xs border border-slate-200 dark:border-slate-700">
+                              {company.industry}
+                            </span>
+                         </td>
                          <td className="p-4 text-slate-600 dark:text-slate-400">{company.city}, {company.country}</td>
                          <td className="p-4 font-medium text-slate-700 dark:text-slate-300">{formatCurrency(company.annual_revenue)}</td>
                          <td className="p-4 text-slate-600 dark:text-slate-400">{company.employees_count?.toLocaleString()}</td>
@@ -504,7 +611,7 @@ export const Companies: React.FC = () => {
                            </Button3D>
                          </td>
                        </TiltRow>
-                     ))}
+                     )})}
                    </tbody>
                  </table>
                </div>
@@ -516,8 +623,8 @@ export const Companies: React.FC = () => {
       {/* --- Modals --- */}
       <Modal3D isOpen={modalType === 'bulk'} onClose={() => setModalType(null)} title="Bulk Import">
          <div className="space-y-6">
-            <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
-               <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group bg-slate-50/50 dark:bg-slate-800/20">
+               <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner-3d-light dark:shadow-inner-3d">
                   <FileSpreadsheet size={32} className="text-indigo-500" />
                </div>
                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Upload CSV or JSON</h3>
