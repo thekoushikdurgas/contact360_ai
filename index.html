@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HyperDash 3D</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Outfit', 'sans-serif'],
+            },
+            colors: {
+              glass: 'rgba(255, 255, 255, 0.1)',
+              'glass-border': 'rgba(255, 255, 255, 0.2)',
+              primary: '#6366f1',
+              secondary: '#8b5cf6',
+              accent: '#f43f5e',
+              surface: '#0f172a',
+            },
+            boxShadow: {
+              '3d': '0px 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.1)',
+              '3d-light': '0px 10px 30px -10px rgba(99, 102, 241, 0.15), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.8)',
+              '3d-hover': '0px 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.2)',
+              '3d-hover-light': '0px 20px 40px -10px rgba(99, 102, 241, 0.2), inset 0px 0px 0px 1px rgba(255, 255, 255, 1)',
+              'inner-3d': 'inset 2px 2px 5px rgba(0, 0, 0, 0.5), inset -2px -2px 5px rgba(255, 255, 255, 0.05)',
+              'inner-3d-light': 'inset 2px 2px 5px rgba(203, 213, 225, 0.5), inset -2px -2px 5px rgba(255, 255, 255, 0.8)',
+              'float': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            },
+            animation: {
+              'shimmer': 'shimmer 2s linear infinite',
+            },
+            keyframes: {
+              shimmer: {
+                '0%': { transform: 'translateX(-100%)' },
+                '100%': { transform: 'translateX(100%)' }
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        background-color: #f8fafc; /* Light mode default */
+        color: #1e293b;
+        overflow-x: hidden;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      
+      .dark body {
+        background-color: #0f172a; /* Dark mode default */
+        color: #e2e8f0;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1; 
+        border-radius: 4px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #334155; 
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8; 
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #475569; 
+      }
+      
+      .perspective-container {
+        perspective: 1200px;
+      }
+      
+      /* Enhanced 3D Card */
+      .card-3d {
+        transform-style: preserve-3d;
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease, border-color 0.3s ease, background-color 0.3s ease;
+      }
+      
+      .card-3d:hover {
+        transform: translateY(-8px) rotateX(2deg) rotateY(-1deg);
+      }
+
+      /* Dark mode specific hover */
+      .dark .card-3d:hover {
+        box-shadow: 
+          0 20px 50px -10px rgba(0, 0, 0, 0.6),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+        border-color: rgba(99, 102, 241, 0.4);
+      }
+
+      /* Light mode specific hover */
+      .card-3d:hover {
+        box-shadow: 
+          0 20px 50px -10px rgba(99, 102, 241, 0.2),
+          inset 0 0 0 1px rgba(255, 255, 255, 1);
+        border-color: rgba(99, 102, 241, 0.3);
+      }
+
+      /* Subtle Shine Overlay */
+      .card-3d::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.4) 40%, transparent 60%);
+        background-size: 200% 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        transition: opacity 0.3s ease, background-position 0.8s ease;
+        pointer-events: none;
+        border-radius: inherit;
+        z-index: 20;
+      }
+      
+      .dark .card-3d::after {
+        background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.05) 40%, transparent 60%);
+      }
+
+      .card-3d:hover::after {
+        opacity: 1;
+        background-position: 0 0;
+      }
+
+      /* Entrance Animations */
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      .animate-enter {
+        animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        opacity: 0; /* Ensures element is hidden before animation starts */
+        will-change: transform, opacity;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
+    "jspdf": "https://esm.sh/jspdf@2.5.1"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
