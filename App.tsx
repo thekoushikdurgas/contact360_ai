@@ -9,8 +9,10 @@ import { EmailFinder } from './features/EmailFinder';
 import { EmailVerifier } from './features/EmailVerifier';
 import { Billing } from './features/Billing';
 import { Exports } from './features/Exports';
+import { LinkedIn } from './features/LinkedIn';
+import { Profile } from './features/Profile';
 import { NAV_ITEMS, ICON_MAP } from './constants';
-import { LogOut, Settings, Menu, X, Sun, Moon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LogOut, Settings, Menu, X, Sun, Moon, ChevronLeft, ChevronRight, User } from 'lucide-react';
 import { Button3D } from './components/UI';
 import { NavItem } from './types';
 import { useTheme } from './contexts/ThemeContext';
@@ -153,11 +155,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
 
           <div 
-             onClick={() => navigate('/settings')}
-             className={`flex items-center ${isSidebarExpanded ? 'justify-start px-3' : 'justify-center'} text-slate-500 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 cursor-pointer transition-colors p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5`}
+             onClick={() => navigate('/profile')}
+             className={`flex items-center ${isSidebarExpanded ? 'justify-start px-3' : 'justify-center'} text-slate-500 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 cursor-pointer transition-colors p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 ${location.pathname === '/profile' ? 'bg-indigo-50 dark:bg-white/5 text-indigo-600 dark:text-indigo-400' : ''}`}
           >
-             <div className="shrink-0"><div className={`${!isSidebarExpanded && 'p-0.5'}`}><Settings size={20} /></div></div>
-             <span className={`ml-3 font-medium text-sm transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>Settings</span>
+             <div className="shrink-0"><div className={`${!isSidebarExpanded && 'p-0.5'}`}><User size={20} /></div></div>
+             <span className={`ml-3 font-medium text-sm transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>Profile</span>
           </div>
           <div className={`flex items-center ${isSidebarExpanded ? 'justify-start px-3' : 'justify-center'} text-rose-500/80 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer transition-colors p-2.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-500/10`}>
              <div className="shrink-0"><div className={`${!isSidebarExpanded && 'p-0.5'}`}><LogOut size={20} /></div></div>
@@ -233,8 +235,9 @@ const App: React.FC = () => {
           <Route path="/verifier" element={<EmailVerifier />} />
           <Route path="/billing" element={<Billing />} />
           <Route path="/export" element={<Exports />} />
-          <Route path="/linkedin" element={<PlaceholderPage title="LinkedIn Integration" />} />
-          <Route path="/settings" element={<PlaceholderPage title="Global Settings" />} />
+          <Route path="/linkedin" element={<LinkedIn />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Profile />} />
           <Route path="*" element={<PlaceholderPage title="404 Not Found" />} />
         </Routes>
       </Layout>
