@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card3D, Input3D, Button3D, Badge3D } from '../components/UI';
 import { Search, Clock, Copy, Upload, FileSpreadsheet, Download, CheckCircle, AlertCircle, Sparkles, ArrowRight, X, Mail, ShieldCheck } from 'lucide-react';
@@ -200,91 +201,4 @@ export const EmailFinder: React.FC = () => {
                     <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-3 flex items-center gap-2">
                        <AlertCircle size={18} /> Required Columns
                     </h4>
-                    <div className="grid grid-cols-3 gap-3 text-sm font-medium text-slate-600 dark:text-slate-300">
-                       <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-blue-100 dark:border-blue-500/20 text-center shadow-sm">First Name</div>
-                       <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-blue-100 dark:border-blue-500/20 text-center shadow-sm">Last Name</div>
-                       <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-blue-100 dark:border-blue-500/20 text-center shadow-sm">Domain</div>
-                    </div>
-                 </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* History Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-4 py-2 border-b border-slate-200 dark:border-slate-700/50">
-             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">History</h3>
-          </div>
-          
-          <div className="space-y-4">
-              {history.map((item, idx) => (
-                <div 
-                  key={item.id}
-                  className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 animate-enter"
-                  style={{ animationDelay: `${idx * 100}ms` }}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                     {/* Left: Info */}
-                     <div className="flex items-start gap-4">
-                        <div className={`
-                          mt-1 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-inner-3d-light dark:shadow-inner-3d shrink-0
-                          ${item.status === 'Valid' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}
-                        `}>
-                           {item.status === 'Valid' ? <ShieldCheck size={18} /> : <X size={18} />}
-                        </div>
-                        <div>
-                           <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs text-slate-400 flex items-center gap-1">
-                                <Clock size={10} /> {item.timestamp}
-                              </span>
-                           </div>
-                           <div className="text-base font-semibold text-slate-700 dark:text-slate-200">
-                             {item.firstName} {item.lastName} <span className="text-slate-400 mx-1">•</span> <span className="text-indigo-600 dark:text-indigo-400">{item.domain}</span>
-                           </div>
-                        </div>
-                     </div>
-
-                     {/* Right: Result */}
-                     <div className="w-full sm:w-auto">
-                        {item.email ? (
-                          <div className="flex flex-col gap-2 min-w-[240px]">
-                             <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-500/20 rounded-lg p-2 pl-3">
-                                <span className="font-bold text-slate-800 dark:text-white flex-1 truncate">{item.email}</span>
-                                <button 
-                                   onClick={() => copyToClipboard(item.email!)}
-                                   className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 dark:text-emerald-400 dark:hover:bg-emerald-900/40 rounded-md transition-colors"
-                                   title="Copy email"
-                                >
-                                   <Copy size={16} />
-                                </button>
-                             </div>
-                             
-                             <div className="flex items-center justify-between text-xs px-1">
-                                <Badge3D variant="success">
-                                   <span className="flex items-center gap-1"><CheckCircle size={10} strokeWidth={3} /> VALID</span>
-                                </Badge3D>
-                                <span className="text-slate-400 font-medium">{item.confidence}% Confidence</span>
-                             </div>
-                             {/* Mini Progress Bar for visual flair */}
-                             <div className="h-1 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div className="h-full bg-emerald-500" style={{ width: `${item.confidence}%` }} />
-                             </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-lg border border-slate-100 dark:border-slate-700/50 min-w-[240px] justify-center">
-                             <AlertCircle size={16} />
-                             <span className="font-medium text-sm">No email found</span>
-                          </div>
-                        )}
-                     </div>
-                  </div>
-                </div>
-              ))}
-          </div>
-        </div>
-
-      </div>
-    </div>
-  );
-};
+                    <div className="grid

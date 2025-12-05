@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card3D, Button3D, TiltRow, TabGroup } from '../components/UI';
+import { SkeletonTable3D } from '../components/Skeleton';
 import { 
   FileSpreadsheet, Download, Coins, Loader2
 } from 'lucide-react';
@@ -21,8 +23,18 @@ const INITIAL_EXPORTS: ExportList[] = [
 ];
 
 export const Exports: React.FC = () => {
-  const [lists, setLists] = useState<ExportList[]>(INITIAL_EXPORTS);
+  const [lists, setLists] = useState<ExportList[]>([]);
   const [activeTab, setActiveTab] = useState('All Lists');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    // Simulate loading
+    setTimeout(() => {
+       setLists(INITIAL_EXPORTS);
+       setIsLoading(false);
+    }, 1000);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -103,139 +115,92 @@ export const Exports: React.FC = () => {
 
       {/* Main Table Card */}
       <div className="perspective-container">
-         <div className="card-3d bg-white dark:bg-slate-800/60 backdrop-blur-xl border border-slate-200 dark:border-slate-700/60 rounded-xl shadow-3d-light dark:shadow-3d overflow-hidden min-h-[400px] flex flex-col">
+         <div className="card-3d bg-white dark:bg-slate-800/60 backdrop-blur-xl border border-slate-200 dark:border-slate-700/60 rounded-xl shadow-3d-light dark:shadow-3d overflow-hidden min-h-[500px] flex flex-col p-6">
             
-            {/* Tabs & Stats */}
-            <div className="p-4 border-b border-slate-200 dark:border-slate-700/60 flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <TabGroup 
-                tabs={['All Lists', 'Ready', 'Processing']}
-                activeTab={activeTab}
-                onChange={setActiveTab}
-              />
-              <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                 {filteredLists.length} Lists Found
-              </div>
+            <div className="flex justify-between items-center mb-6">
+               <TabGroup tabs={['All Lists', 'Ready', 'Processing']} activeTab={activeTab} onChange={setActiveTab} />
+               <div className="text-sm font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 px-3 py-1.5 rounded-lg flex items-center gap-2 border border-slate-200 dark:border-slate-700">
+                  <Coins size={14} className="text-amber-500" />
+                  Total Exported: <span className="text-slate-800 dark:text-white font-bold">{lists.reduce((acc, l) => acc + l.creditsDeducted, 0).toLocaleString()}</span>
+               </div>
             </div>
 
-            {/* Table */}
-            <div className="flex-1 overflow-x-auto">
-               <table className="w-full text-left text-sm min-w-[800px]">
-                  <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-700/50">
-                     <tr>
-                        <th className="p-6 w-1/4">List Name</th>
-                        <th className="p-6">Records</th>
-                        <th className="p-6">Created Date</th>
-                        <th className="p-6">Credits Deducted</th>
-                        <th className="p-6 w-1/4">Status & Progress</th>
-                        <th className="p-6 text-right">Actions</th>
-                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                     {filteredLists.length === 0 ? (
+            {isLoading ? (
+               <SkeletonTable3D rows={6} />
+            ) : (
+               <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/50">
+                  <table className="w-full text-left text-sm min-w-[800px]">
+                     <thead className="bg-slate-50/80 dark:bg-slate-900/40 text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-700/50">
                         <tr>
-                           <td colSpan={6} className="p-12 text-center">
-                              <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 shadow-inner-3d-light dark:shadow-inner-3d">
-                                 <FileSpreadsheet size={32} />
-                              </div>
-                              <h3 className="text-slate-800 dark:text-slate-200 font-bold text-lg">No exported lists yet</h3>
-                              <p className="text-slate-500 dark:text-slate-400 mt-1">Create one to get started.</p>
-                           </td>
+                           <th className="px-6 py-4">List Name</th>
+                           <th className="px-6 py-4">Records</th>
+                           <th className="px-6 py-4">Created Date</th>
+                           <th className="px-6 py-4">Status</th>
+                           <th className="px-6 py-4">Credits</th>
+                           <th className="px-6 py-4 text-right">Action</th>
                         </tr>
-                     ) : (
-                        filteredLists.map((item) => {
-                           const isProcessing = item.status === 'Processing';
-                           return (
-                              <TiltRow key={item.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-                                 {/* List Name */}
-                                 <td className="p-6">
-                                    <div className="flex items-center gap-4">
-                                       <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 shadow-inner-3d-light dark:shadow-inner-3d group-hover:scale-110 transition-transform duration-300">
-                                          <FileSpreadsheet size={20} />
+                     </thead>
+                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                        {filteredLists.length === 0 ? (
+                           <tr>
+                              <td colSpan={6} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+                                 No exports found in this category.
+                              </td>
+                           </tr>
+                        ) : (
+                           filteredLists.map((list) => (
+                              <TiltRow key={list.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                                 <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                       <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-indigo-600 dark:text-indigo-400">
+                                          <FileSpreadsheet size={18} />
                                        </div>
-                                       <div className="font-bold text-slate-800 dark:text-slate-100 text-base">
-                                          {item.name}
-                                       </div>
+                                       <span className="font-semibold text-slate-700 dark:text-slate-200">{list.name}</span>
                                     </div>
                                  </td>
-
-                                 {/* Records */}
-                                 <td className="p-6 font-medium text-slate-700 dark:text-slate-300 text-base">
-                                    {item.count > 0 ? item.count.toLocaleString() : '-'}
+                                 <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-mono">
+                                    {list.count > 0 ? list.count.toLocaleString() : '-'}
                                  </td>
-
-                                 {/* Created Date */}
-                                 <td className="p-6 text-slate-500 dark:text-slate-400 font-medium">
-                                    {item.createdAt}
+                                 <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                                    {list.createdAt}
                                  </td>
-
-                                 {/* Credits Deducted */}
-                                 <td className="p-6">
-                                    <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-900/10 px-3 py-1.5 rounded-lg w-fit border border-rose-100 dark:border-rose-900/20 shadow-sm">
-                                       <Coins size={16} className="text-amber-500" fill="currentColor" fillOpacity={0.2} />
-                                       <span>{item.creditsDeducted > 0 ? `-${item.creditsDeducted.toLocaleString()}` : '0'}</span>
-                                    </div>
-                                 </td>
-
-                                 {/* Status & Progress */}
-                                 <td className="p-6">
-                                    <div className="flex flex-col gap-2">
-                                       <div className="flex justify-between items-center text-xs">
-                                          <div className="flex items-center gap-2">
-                                             {isProcessing && <Loader2 size={14} className="animate-spin text-indigo-600 dark:text-indigo-400" />}
-                                             <span className={`font-bold tracking-wide uppercase ${
-                                                isProcessing 
-                                                   ? 'text-indigo-600 dark:text-indigo-400' 
-                                                   : 'text-emerald-600 dark:text-emerald-400'
-                                             }`}>
-                                                {item.status}
-                                             </span>
+                                 <td className="px-6 py-4">
+                                    {list.status === 'Processing' ? (
+                                       <div className="w-full max-w-[120px]">
+                                          <div className="flex justify-between text-[10px] font-bold text-indigo-500 mb-1">
+                                             <span>PROCESSING</span>
+                                             <span>{list.progress}%</span>
                                           </div>
-                                          <span className="text-slate-500 font-mono">{item.progress}%</span>
-                                       </div>
-                                       
-                                       {/* 3D Progress Bar */}
-                                       <div className="w-full h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden relative shadow-inner-3d-light dark:shadow-inner-3d">
-                                          <div 
-                                             className={`h-full transition-all duration-700 ease-out rounded-full relative overflow-hidden ${
-                                                isProcessing 
-                                                   ? 'bg-gradient-to-r from-indigo-600 via-indigo-400 to-indigo-600 shadow-[0_0_20px_rgba(99,102,241,0.5)]' 
-                                                   : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'
-                                             }`} 
-                                             style={{ width: `${item.progress}%` }}
-                                          >
-                                             {isProcessing && (
-                                                <>
-                                                   {/* Pulsing Glow Loop */}
-                                                   <div className="absolute inset-0 bg-indigo-400/30 animate-pulse" />
-                                                   {/* Moving Shimmer */}
-                                                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-[shimmer_1.5s_linear_infinite] -skew-x-12" />
-                                                </>
-                                             )}
+                                          <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                             <div className="h-full bg-indigo-500 transition-all duration-500 ease-out" style={{ width: `${list.progress}%` }} />
                                           </div>
                                        </div>
-                                    </div>
+                                    ) : (
+                                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20">
+                                          READY
+                                       </span>
+                                    )}
                                  </td>
-
-                                 {/* Actions */}
-                                 <td className="p-6 text-right">
-                                    {item.status === 'Ready' && (
+                                 <td className="px-6 py-4">
+                                    <span className="font-mono text-slate-600 dark:text-slate-300">-{list.creditsDeducted}</span>
+                                 </td>
+                                 <td className="px-6 py-4 text-right">
+                                    {list.status === 'Ready' && (
                                        <button 
-                                          onClick={(e) => handleDownload(item.id, e)}
-                                          className="flex items-center gap-2 px-4 py-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20 rounded-lg transition-all text-sm font-bold ml-auto group/btn" 
-                                          title="Download CSV"
+                                          onClick={(e) => handleDownload(list.id, e)}
+                                          className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium text-sm flex items-center gap-1 ml-auto hover:bg-indigo-50 dark:hover:bg-indigo-900/20 px-3 py-1.5 rounded-lg transition-all"
                                        >
-                                          <Download size={16} className="group-hover/btn:-translate-y-0.5 transition-transform" /> 
-                                          Download CSV
+                                          <Download size={14} /> Download
                                        </button>
                                     )}
                                  </td>
                               </TiltRow>
-                           );
-                        })
-                     )}
-                  </tbody>
-               </table>
-            </div>
+                           ))
+                        )}
+                     </tbody>
+                  </table>
+               </div>
+            )}
          </div>
       </div>
     </div>

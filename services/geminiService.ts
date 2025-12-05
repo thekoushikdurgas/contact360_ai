@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { GeminiModel } from "../types";
 
 // Initialize the API client safely
@@ -24,7 +24,7 @@ export const sendMessageToGemini = async (
     const chat = client.chats.create({
       model: GeminiModel.FLASH,
       config: {
-        systemInstruction: "You are a helpful, professional AI assistant for a Lead Generation Dashboard called 'HyperDash'. You help users analyze data, write cold emails, and suggest lead strategies. Keep responses concise and formatted with Markdown.",
+        systemInstruction: "You are NexusAI, a futuristic 3D dashboard assistant. You help users analyze data, write cold emails, and suggest lead strategies. Keep responses concise, professional, and formatted with Markdown.",
       },
       history: history.map(h => ({
         role: h.role,
@@ -37,6 +37,42 @@ export const sendMessageToGemini = async (
   } catch (error) {
     console.error("Gemini API Error:", error);
     return "Sorry, I encountered an error connecting to the AI service.";
+  }
+};
+
+export const streamMessageToGemini = async function* (
+  message: string,
+  history: { role: string; parts: { text: string }[] }[] = []
+): AsyncGenerator<string, void, unknown> {
+  const client = getClient();
+  if (!client) {
+    yield "Error: API Key is missing. Please configure your environment.";
+    return;
+  }
+
+  try {
+    const chat = client.chats.create({
+      model: GeminiModel.FLASH,
+      config: {
+        systemInstruction: "You are NexusAI, a futuristic 3D dashboard assistant. You help users analyze data, write cold emails, and suggest lead strategies. Keep responses concise, professional, and formatted with Markdown.",
+      },
+      history: history.map(h => ({
+        role: h.role,
+        parts: h.parts
+      })),
+    });
+
+    const resultStream = await chat.sendMessageStream({ message });
+    
+    for await (const chunk of resultStream) {
+      const c = chunk as GenerateContentResponse;
+      if (c.text) {
+        yield c.text;
+      }
+    }
+  } catch (error) {
+    console.error("Gemini API Stream Error:", error);
+    yield "Sorry, I encountered an error connecting to the AI service.";
   }
 };
 

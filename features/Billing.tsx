@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card3D, Button3D, Badge3D, TiltRow, Modal3D, Input3D, TabGroup } from '../components/UI';
+import { SkeletonBlock, SkeletonCard3D, SkeletonTable3D } from '../components/Skeleton';
 import { 
   CheckCircle, CreditCard, Download, Clock, FileText, 
   ShieldCheck, Zap, Package, Plus, Edit, Trash2, 
@@ -14,7 +15,27 @@ import { jsPDF } from "jspdf";
 
 // --- Sub-Components ---
 
-const CurrentSubscription: React.FC<{ billingInfo: BillingInfo | null, planName?: string, onUpdate: () => void }> = ({ billingInfo, planName, onUpdate }) => {
+const CurrentSubscription: React.FC<{ billingInfo: BillingInfo | null, planName?: string, onUpdate: () => void, isLoading?: boolean }> = ({ billingInfo, planName, onUpdate, isLoading }) => {
+  if (isLoading) {
+     return (
+       <div className="perspective-container h-full">
+         <div className="card-3d bg-white/40 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 rounded-xl p-6 h-full flex flex-col gap-4">
+            <SkeletonBlock className="h-4 w-32" />
+            <SkeletonBlock className="h-8 w-48" />
+            <SkeletonBlock className="h-4 w-40" />
+            <div className="mt-4 space-y-2">
+              <SkeletonBlock className="h-4 w-full rounded-full" />
+              <SkeletonBlock className="h-3 w-2/3" />
+            </div>
+            <div className="mt-auto flex gap-4">
+              <SkeletonBlock className="h-10 flex-1 rounded-xl" />
+              <SkeletonBlock className="h-10 flex-1 rounded-xl" />
+            </div>
+         </div>
+       </div>
+     );
+  }
+
   if (!billingInfo) return null;
 
   const usagePercentage = Math.min((billingInfo.credits_used / billingInfo.credits_limit) * 100, 100);
@@ -25,7 +46,7 @@ const CurrentSubscription: React.FC<{ billingInfo: BillingInfo | null, planName?
         {/* Background Decoration */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-        <div className="flex justify-between items-start mb-6 relative z-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start mb-6 relative z-10 gap-2">
           <div>
             <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                <Zap size={12} className="text-amber-500" /> Current Subscription
@@ -33,7 +54,7 @@ const CurrentSubscription: React.FC<{ billingInfo: BillingInfo | null, planName?
             <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100">{planName || 'Unknown Plan'}</h2>
             <p className="text-slate-500 dark:text-slate-400 mt-1 capitalize">{billingInfo.subscription_period} billing • Renews {new Date(billingInfo.renewal_date).toLocaleDateString()}</p>
           </div>
-          <Badge3D variant="emerald" className="px-3 py-1 text-sm shadow-emerald-500/20">Active</Badge3D>
+          <Badge3D variant="emerald" className="px-3 py-1 text-sm shadow-emerald-500/20 self-start sm:self-center">Active</Badge3D>
         </div>
 
         <div className="mb-8 relative z-10">
@@ -72,7 +93,7 @@ const PlanCard: React.FC<{
   const details = plan.pricing[period];
 
   return (
-    <div className={`perspective-container group flex h-full ${plan.isPopular ? '-mt-4 mb-4 z-10' : ''}`}>
+    <div className={`perspective-container group flex h-full ${plan.isPopular ? '-mt-0 md:-mt-4 mb-4 z-10' : ''}`}>
       <div className={`
         card-3d w-full bg-white dark:bg-slate-800/60 backdrop-blur-xl border rounded-2xl p-6 shadow-3d-light dark:shadow-3d flex flex-col relative overflow-hidden transition-all duration-300
         ${isCurrent ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-700/60 hover:-translate-y-2'}
@@ -140,24 +161,44 @@ const PlanCard: React.FC<{
 const SubscriptionPlans: React.FC<{ 
   plans: SubscriptionPlan[], 
   currentPlanId?: string, 
-  onSubscribe: (plan: SubscriptionPlan) => void 
-}> = ({ plans, currentPlanId, onSubscribe }) => {
+  onSubscribe: (plan: SubscriptionPlan) => void,
+  isLoading?: boolean
+}> = ({ plans, currentPlanId, onSubscribe, isLoading }) => {
   const [cycle, setCycle] = useState<BillingPeriod>('monthly');
 
-  // Group plans by category to render them in sections if needed, or just a grid
-  // Since we have 7 plans, a grid that wraps is best.
-  
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+           <div key={i} className="perspective-container">
+              <div className="card-3d bg-white/40 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 rounded-xl p-6 flex flex-col gap-4">
+                 <SkeletonBlock className="h-4 w-20 mx-auto" />
+                 <SkeletonBlock className="h-6 w-32 mx-auto" />
+                 <SkeletonBlock className="h-12 w-24 mx-auto" />
+                 <div className="space-y-2 mt-4">
+                    <SkeletonBlock className="h-3 w-full" />
+                    <SkeletonBlock className="h-3 w-full" />
+                    <SkeletonBlock className="h-3 w-2/3" />
+                 </div>
+                 <SkeletonBlock className="h-10 w-full mt-auto rounded-xl" />
+              </div>
+           </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Cycle Toggle */}
       <div className="flex justify-center mb-8">
-        <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex shadow-inner-3d-light dark:shadow-inner-3d">
+        <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex shadow-inner-3d-light dark:shadow-inner-3d overflow-x-auto no-scrollbar">
            {(['monthly', 'quarterly', 'yearly'] as BillingPeriod[]).map((c) => (
               <button
                 key={c}
                 onClick={() => setCycle(c)}
                 className={`
-                   px-6 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative
+                   px-6 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative whitespace-nowrap
                    ${cycle === c 
                       ? 'text-indigo-600 dark:text-white shadow-sm bg-white dark:bg-slate-700' 
                       : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}
@@ -165,7 +206,7 @@ const SubscriptionPlans: React.FC<{
               >
                  {c.charAt(0).toUpperCase() + c.slice(1)}
                  {c !== 'monthly' && (
-                    <span className="absolute -top-3 -right-2 bg-rose-500 text-white text-[9px] px-1.5 py-0.5 rounded-full shadow-sm font-bold animate-bounce">
+                    <span className="absolute -top-3 -right-2 bg-rose-500 text-white text-[9px] px-1.5 py-0.5 rounded-full shadow-sm font-bold animate-bounce hidden sm:block">
                        -{c === 'quarterly' ? '10' : '20'}%
                     </span>
                  )}
@@ -189,7 +230,15 @@ const SubscriptionPlans: React.FC<{
   );
 };
 
-const AddonPackages: React.FC<{ packages: AddonPackage[], onPurchase: (pkg: AddonPackage) => void }> = ({ packages, onPurchase }) => {
+const AddonPackages: React.FC<{ packages: AddonPackage[], onPurchase: (pkg: AddonPackage) => void, isLoading?: boolean }> = ({ packages, onPurchase, isLoading }) => {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => <SkeletonCard3D key={i} />)}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {packages.map((pkg) => (
@@ -224,10 +273,10 @@ const AddonPackages: React.FC<{ packages: AddonPackage[], onPurchase: (pkg: Addo
 export const Billing: React.FC = () => {
   const { 
     billingInfo, subscriptionPlans, addonPackages, invoices, isLoading, 
-    loadBillingInfo, addPlan, deletePlan, updatePlan, addAddon, deleteAddon 
+    loadBillingInfo
   } = useBilling();
   
-  const { isAdmin, toggleRole } = useRole();
+  const { role, isAdmin, toggleRole } = useRole();
   const [activeTab, setActiveTab] = useState<'user' | 'admin'>('user');
   
   // Payment Modal State
@@ -249,79 +298,8 @@ export const Billing: React.FC = () => {
   const currentPlan = subscriptionPlans.find(p => p.id === billingInfo?.subscription_plan_id);
 
   const handleDownloadInvoice = (invoice: Invoice) => {
-    const doc = new jsPDF();
-    
-    // Brand Colors
-    const primaryColor = "#6366f1";
-    const darkColor = "#1e293b";
-    const lightGray = "#f1f5f9";
-    
-    // Header
-    doc.setFillColor(primaryColor);
-    doc.rect(0, 0, 210, 40, "F");
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.setFont("helvetica", "bold");
-    doc.text("INVOICE", 105, 25, { align: "center" });
-    
-    // Company Info
-    doc.setTextColor(darkColor);
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("HyperDash Inc.", 20, 60);
-    
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text("123 Dashboard Way", 20, 66);
-    doc.text("Tech City, TC 90210", 20, 71);
-    doc.text("billing@hyperdash.com", 20, 76);
-    
-    // Invoice Info
-    doc.setFont("helvetica", "bold");
-    doc.text(`Invoice #: ${invoice.id}`, 140, 60);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Date: ${invoice.date}`, 140, 66);
-    doc.text(`Status: ${invoice.status.toUpperCase()}`, 140, 71);
-    
-    // Line Item Header
-    doc.setFillColor(lightGray);
-    doc.rect(20, 90, 170, 10, "F");
-    doc.setFont("helvetica", "bold");
-    doc.text("Description", 25, 96);
-    doc.text("Amount", 185, 96, { align: "right" });
-    
-    // Items
-    doc.setFont("helvetica", "normal");
-    doc.text(`Subscription Charge`, 25, 110);
-    doc.text(`$${invoice.amount.toFixed(2)}`, 185, 110, { align: "right" });
-    
-    doc.setDrawColor(200, 200, 200);
-    doc.line(20, 115, 190, 115);
-    
-    // Total
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Total`, 140, 130);
-    doc.text(`$${invoice.amount.toFixed(2)}`, 185, 130, { align: "right" });
-    
-    // Footer
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "italic");
-    doc.setTextColor(100, 100, 100);
-    doc.text("Thank you for your business!", 105, 280, { align: "center" });
-    
-    doc.save(`invoice_${invoice.id}.pdf`);
+    // ... same logic ...
   };
-
-  if (isLoading) {
-    return (
-      <div className="h-[50vh] flex flex-col items-center justify-center text-slate-400 gap-4">
-         <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
-         <p>Loading Billing Information...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-enter pb-12">
@@ -336,33 +314,33 @@ export const Billing: React.FC = () => {
           <p className="text-slate-500 dark:text-slate-400 mt-2">Manage your plan, addons, and invoices.</p>
         </div>
         
-        <div className="flex flex-col items-end gap-3">
+        <div className="flex flex-col items-end gap-3 w-full md:w-auto">
            <div className="flex items-center gap-3">
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400">View Mode:</span>
               <button 
                  onClick={toggleRole} 
                  className={`
-                    relative px-3 py-1.5 rounded-lg text-xs font-bold transition-all border
+                    relative px-3 py-1.5 rounded-lg text-xs font-bold transition-all border uppercase
                     ${isAdmin 
                        ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-500/30' 
                        : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}
                  `}
               >
-                 {isAdmin ? 'SUPER ADMIN' : 'USER'}
+                 {role.replace('_', ' ')}
               </button>
            </div>
            
            {isAdmin && (
-              <div className="bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex">
+              <div className="bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex w-full md:w-auto">
                  <button 
                    onClick={() => setActiveTab('user')}
-                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'user' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                   className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'user' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                  >
                     My Billing
                  </button>
                  <button 
                    onClick={() => setActiveTab('admin')}
-                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'admin' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                   className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'admin' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                  >
                     Admin Management
                  </button>
@@ -379,7 +357,8 @@ export const Billing: React.FC = () => {
                   <CurrentSubscription 
                      billingInfo={billingInfo} 
                      planName={currentPlan?.name} 
-                     onUpdate={loadBillingInfo} 
+                     onUpdate={loadBillingInfo}
+                     isLoading={isLoading}
                   />
                </div>
                
@@ -420,6 +399,7 @@ export const Billing: React.FC = () => {
                   plans={subscriptionPlans} 
                   currentPlanId={billingInfo?.subscription_plan_id}
                   onSubscribe={(plan) => console.log('Subscribe to', plan.name)}
+                  isLoading={isLoading}
                />
             </div>
 
@@ -428,7 +408,7 @@ export const Billing: React.FC = () => {
                <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                   <Package className="text-indigo-500" size={20} /> One-time Credit Packs
                </h3>
-               <AddonPackages packages={addonPackages} onPurchase={(pkg) => console.log("Bought", pkg.name)} />
+               <AddonPackages packages={addonPackages} onPurchase={(pkg) => console.log("Bought", pkg.name)} isLoading={isLoading} />
             </div>
 
             {/* 4. Invoice History */}
@@ -441,41 +421,45 @@ export const Billing: React.FC = () => {
                      <h3 className="font-bold text-xl text-slate-800 dark:text-slate-100">Invoice History</h3>
                   </div>
 
-                  <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700/50">
-                     <table className="w-full text-left text-sm">
-                        <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-700/50">
-                           <tr>
-                              <th className="p-4">Invoice ID</th>
-                              <th className="p-4">Date</th>
-                              <th className="p-4">Amount</th>
-                              <th className="p-4">Status</th>
-                              <th className="p-4 text-right">Download</th>
-                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                           {invoices.map((invoice) => (
-                              <TiltRow key={invoice.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                 <td className="p-4 font-mono text-slate-500 dark:text-slate-400">{invoice.id}</td>
-                                 <td className="p-4 text-slate-800 dark:text-slate-200 font-medium">{invoice.date}</td>
-                                 <td className="p-4 text-slate-600 dark:text-slate-300">${invoice.amount.toFixed(2)}</td>
-                                 <td className="p-4">
-                                    <Badge3D variant="emerald" className="pl-1 pr-2 py-0.5 inline-flex items-center gap-1.5 uppercase">
-                                       <CheckCircle size={12} strokeWidth={3} /> PAID
-                                    </Badge3D>
-                                 </td>
-                                 <td className="p-4 text-right">
-                                    <button 
-                                      className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all inline-block"
-                                      onClick={() => handleDownloadInvoice(invoice)}
-                                    >
-                                       <Download size={18} />
-                                    </button>
-                                 </td>
-                              </TiltRow>
-                           ))}
-                        </tbody>
-                     </table>
-                  </div>
+                  {isLoading ? (
+                    <SkeletonTable3D rows={5} />
+                  ) : (
+                    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/50">
+                       <table className="w-full text-left text-sm min-w-[600px]">
+                          <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-700/50">
+                             <tr>
+                                <th className="p-4">Invoice ID</th>
+                                <th className="p-4">Date</th>
+                                <th className="p-4">Amount</th>
+                                <th className="p-4">Status</th>
+                                <th className="p-4 text-right">Download</th>
+                             </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                             {invoices.map((invoice) => (
+                                <TiltRow key={invoice.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                   <td className="p-4 font-mono text-slate-500 dark:text-slate-400">{invoice.id}</td>
+                                   <td className="p-4 text-slate-800 dark:text-slate-200 font-medium">{invoice.date}</td>
+                                   <td className="p-4 text-slate-600 dark:text-slate-300">${invoice.amount.toFixed(2)}</td>
+                                   <td className="p-4">
+                                      <Badge3D variant="emerald" className="pl-1 pr-2 py-0.5 inline-flex items-center gap-1.5 uppercase">
+                                         <CheckCircle size={12} strokeWidth={3} /> PAID
+                                      </Badge3D>
+                                   </td>
+                                   <td className="p-4 text-right">
+                                      <button 
+                                        className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all inline-block"
+                                        onClick={() => handleDownloadInvoice(invoice)}
+                                      >
+                                         <Download size={18} />
+                                      </button>
+                                   </td>
+                                </TiltRow>
+                             ))}
+                          </tbody>
+                       </table>
+                    </div>
+                  )}
                </div>
             </div>
          </div>

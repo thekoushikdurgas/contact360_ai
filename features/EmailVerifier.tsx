@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Card3D, Button3D, Badge3D, Input3D, TabGroup, Checkbox3D } from '../components/UI';
 import { 
@@ -85,17 +86,17 @@ const INITIAL_HISTORY: ActivityItem[] = [
 const ActivityHistory: React.FC<{ items: ActivityItem[] }> = ({ items }) => (
   <div className="space-y-4">
     {items.map((item, idx) => (
-      <div key={item.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex items-center justify-between animate-enter" style={{ animationDelay: `${idx * 50}ms` }}>
+      <div key={item.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between animate-enter gap-2" style={{ animationDelay: `${idx * 50}ms` }}>
          <div className="flex items-center gap-4">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${item.status === 'success' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30' : item.status === 'warning' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30' : 'bg-rose-100 text-rose-600 dark:bg-rose-900/30'}`}>
                {item.status === 'success' ? <CheckCircle size={18} /> : item.status === 'warning' ? <AlertTriangle size={18} /> : <XCircle size={18} />}
             </div>
             <div>
-               <h4 className="font-semibold text-slate-800 dark:text-slate-100">{item.action}</h4>
-               <p className="text-sm text-slate-500 dark:text-slate-400">{item.details}</p>
+               <h4 className="font-semibold text-slate-800 dark:text-slate-100 text-sm sm:text-base">{item.action}</h4>
+               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">{item.details}</p>
             </div>
          </div>
-         <span className="text-xs text-slate-400 font-medium">{item.timestamp}</span>
+         <span className="text-xs text-slate-400 font-medium self-end sm:self-auto">{item.timestamp}</span>
       </div>
     ))}
   </div>
@@ -254,12 +255,12 @@ export const EmailVerifier: React.FC = () => {
   // Render Logic
   const renderBulkTab = () => (
     <div className="space-y-6 animate-enter">
-       <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700/50 pb-2">
+       <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700/50 pb-2 overflow-x-auto no-scrollbar">
          {['Paste', 'Upload', 'History'].map(tab => (
            <button 
              key={tab}
              onClick={() => { setSubTab(tab as SubTab); setBulkResults(null); }}
-             className={`text-sm font-medium pb-2 border-b-2 transition-colors ${subTab === tab ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+             className={`text-sm font-medium pb-2 border-b-2 transition-colors whitespace-nowrap ${subTab === tab ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
            >
              {tab} Emails
            </button>
@@ -324,7 +325,7 @@ export const EmailVerifier: React.FC = () => {
                 {/* Results Table */}
                 <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
                    <div className="overflow-x-auto">
-                     <table className="w-full text-left text-sm">
+                     <table className="w-full text-left text-sm min-w-[600px]">
                        <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                          <tr>
                            <th className="p-3 font-semibold text-slate-600 dark:text-slate-300">Email</th>
@@ -403,12 +404,12 @@ export const EmailVerifier: React.FC = () => {
 
   const renderEmailTab = () => (
      <div className="space-y-6 animate-enter">
-        <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700/50 pb-2">
+        <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700/50 pb-2 overflow-x-auto no-scrollbar">
          {['Single', 'Generate', 'History'].map(tab => (
            <button 
              key={tab}
              onClick={() => { setSubTab(tab as SubTab); setSingleResult(null); setGenResults(null); }}
-             className={`text-sm font-medium pb-2 border-b-2 transition-colors ${subTab === tab ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+             className={`text-sm font-medium pb-2 border-b-2 transition-colors whitespace-nowrap ${subTab === tab ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
            >
              {tab === 'Generate' ? 'Generate & Verify' : tab}
            </button>
@@ -493,7 +494,7 @@ export const EmailVerifier: React.FC = () => {
           <div className="max-w-2xl mx-auto space-y-8 py-4">
              {!genResults ? (
                <>
-                 <div className="grid grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Input3D 
                         label="First Name" 
@@ -551,8 +552,8 @@ export const EmailVerifier: React.FC = () => {
                       {genResults.valid_emails.length > 0 ? (
                         genResults.valid_emails.map((res: any, idx: number) => (
                            <div key={idx} className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-500/20">
-                              <span className="font-mono text-emerald-800 dark:text-emerald-200 font-medium">{res.email}</span>
-                              <button onClick={() => copyToClipboard(res.email)} className="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 p-1">
+                              <span className="font-mono text-emerald-800 dark:text-emerald-200 font-medium break-all">{res.email}</span>
+                              <button onClick={() => copyToClipboard(res.email)} className="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 p-1 shrink-0">
                                  <Copy size={16} />
                               </button>
                            </div>
@@ -589,8 +590,8 @@ export const EmailVerifier: React.FC = () => {
                     <div className="text-indigo-100 font-medium">Credits Remaining</div>
                  </div>
                  <div className="mt-6 pt-4 border-t border-white/20 flex gap-4">
-                    <Button3D variant="ghost" className="bg-white/10 hover:bg-white/20 text-white border-none text-sm h-9">Buy Credits</Button3D>
-                    <Button3D variant="ghost" className="bg-white/10 hover:bg-white/20 text-white border-none text-sm h-9">Auto-recharge: Off</Button3D>
+                    <Button3D variant="ghost" className="bg-white/10 hover:bg-white/20 text-white border-none text-sm h-9 flex-1">Buy Credits</Button3D>
+                    <Button3D variant="ghost" className="bg-white/10 hover:bg-white/20 text-white border-none text-sm h-9 flex-1">Auto-recharge</Button3D>
                  </div>
               </div>
            </div>
@@ -623,33 +624,35 @@ export const EmailVerifier: React.FC = () => {
               <h3 className="font-bold text-slate-800 dark:text-white">Processed Lists</h3>
               <Button3D variant="ghost" className="h-8 text-xs"><RefreshCw size={14} className="mr-2" /> Refresh</Button3D>
            </div>
-           <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                 <tr>
-                    <th className="p-3 font-semibold text-slate-600 dark:text-slate-300">List Name</th>
-                    <th className="p-3 font-semibold text-slate-600 dark:text-slate-300">Emails</th>
-                    <th className="p-3 font-semibold text-slate-600 dark:text-slate-300">Updated</th>
-                    <th className="p-3 font-semibold text-slate-600 dark:text-slate-300 text-right">Downloads</th>
-                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                 {MOCK_LISTS.map(list => (
-                    <tr key={list.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                       <td className="p-3 font-medium text-indigo-600 dark:text-indigo-400">{list.name}</td>
-                       <td className="p-3 text-slate-600 dark:text-slate-300">
-                          <span className="font-bold">{list.total}</span> <span className="text-xs opacity-70">({list.valid} valid)</span>
-                       </td>
-                       <td className="p-3 text-slate-500 dark:text-slate-400">{list.updatedAt}</td>
-                       <td className="p-3 text-right">
-                          <div className="flex justify-end gap-2">
-                             <button className="px-2 py-1 bg-emerald-50 text-emerald-600 rounded text-xs font-medium border border-emerald-100 hover:bg-emerald-100">Valid</button>
-                             <button className="px-2 py-1 bg-rose-50 text-rose-600 rounded text-xs font-medium border border-rose-100 hover:bg-rose-100">Invalid</button>
-                          </div>
-                       </td>
-                    </tr>
-                 ))}
-              </tbody>
-           </table>
+           <div className="overflow-x-auto">
+             <table className="w-full text-left text-sm min-w-[600px]">
+                <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                   <tr>
+                      <th className="p-3 font-semibold text-slate-600 dark:text-slate-300">List Name</th>
+                      <th className="p-3 font-semibold text-slate-600 dark:text-slate-300">Emails</th>
+                      <th className="p-3 font-semibold text-slate-600 dark:text-slate-300">Updated</th>
+                      <th className="p-3 font-semibold text-slate-600 dark:text-slate-300 text-right">Downloads</th>
+                   </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                   {MOCK_LISTS.map(list => (
+                      <tr key={list.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                         <td className="p-3 font-medium text-indigo-600 dark:text-indigo-400">{list.name}</td>
+                         <td className="p-3 text-slate-600 dark:text-slate-300">
+                            <span className="font-bold">{list.total}</span> <span className="text-xs opacity-70">({list.valid} valid)</span>
+                         </td>
+                         <td className="p-3 text-slate-500 dark:text-slate-400">{list.updatedAt}</td>
+                         <td className="p-3 text-right">
+                            <div className="flex justify-end gap-2">
+                               <button className="px-2 py-1 bg-emerald-50 text-emerald-600 rounded text-xs font-medium border border-emerald-100 hover:bg-emerald-100">Valid</button>
+                               <button className="px-2 py-1 bg-rose-50 text-rose-600 rounded text-xs font-medium border border-rose-100 hover:bg-rose-100">Invalid</button>
+                            </div>
+                         </td>
+                      </tr>
+                   ))}
+                </tbody>
+             </table>
+           </div>
         </div>
      </div>
   );
@@ -674,13 +677,13 @@ export const EmailVerifier: React.FC = () => {
          <div className="card-3d bg-white dark:bg-slate-800/60 backdrop-blur-xl border border-slate-200 dark:border-slate-700/60 rounded-xl overflow-hidden shadow-3d-light dark:shadow-3d min-h-[600px] flex flex-col">
             
             {/* Main Tabs */}
-            <div className="flex border-b border-slate-200 dark:border-slate-700">
+            <div className="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto no-scrollbar">
                {['Bulk', 'Email', 'Management', 'History'].map(tab => (
                   <button
                      key={tab}
                      onClick={() => { setMainTab(tab as MainTab); setSubTab(tab === 'Bulk' ? 'Paste' : tab === 'Email' ? 'Single' : 'Credits'); }}
                      className={`
-                        flex-1 py-4 text-sm font-semibold transition-all relative
+                        flex-1 py-4 px-4 text-sm font-semibold transition-all relative whitespace-nowrap min-w-[100px]
                         ${mainTab === tab 
                            ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/10' 
                            : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5'}
@@ -692,7 +695,7 @@ export const EmailVerifier: React.FC = () => {
                ))}
             </div>
 
-            <div className="p-6 flex-1">
+            <div className="p-4 md:p-6 flex-1">
                {mainTab === 'Bulk' && renderBulkTab()}
                {mainTab === 'Email' && renderEmailTab()}
                {mainTab === 'Management' && renderManagementTab()}

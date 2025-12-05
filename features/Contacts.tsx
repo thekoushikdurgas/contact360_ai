@@ -1,7 +1,9 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Button3D, Input3D, Checkbox3D, Badge3D, Modal3D, MultiSelect3D, RangeSlider3D, TiltRow } from '../components/UI';
+import { SkeletonTable3D } from '../components/Skeleton';
 import { Contact } from '../types';
+import { MOCK_CONTACTS } from '../constants';
 import { 
   Search, Filter, Download, List, Users, Building2, MapPin, Hash, Upload, 
   MoreHorizontal, ChevronLeft, ChevronRight, X, Linkedin, Twitter, Facebook,
@@ -10,86 +12,6 @@ import {
   CheckCircle, AlertCircle, Sparkles, LayoutGrid, Share2, ListPlus, Edit, UploadCloud,
   AtSign, MousePointer2, Phone, Tag, Columns
 } from 'lucide-react';
-
-// --- Raw API Data from JSON Payload ---
-const RAW_API_RESULTS = [
-    {
-        "uuid": "e5ab9611-a330-585d-88df-f93c9f7b033b",
-        "first_name": "Luke",
-        "last_name": "Sollitt",
-        "title": "road liner",
-        "company": "Jointline Limited",
-        "company_name_for_emails": "Jointline Limited",
-        "email": "luke.sollitt@jointline.co.uk",
-        "email_status": "Verified",
-        "primary_email_catch_all_status": null,
-        "seniority": "Entry",
-        "departments": null,
-        "work_direct_phone": null,
-        "home_phone": null,
-        "mobile_phone": null,
-        "corporate_phone": "+44 152 286 8636",
-        "other_phone": null,
-        "stage": "Cold",
-        "employees": 82,
-        "industry": "construction",
-        "keywords": "high friction surfacing, airfield marking, car park marking, warehouse markings, civils, surface dressing, public realm schemes, electric vehicle bays, highways line marking, concrete repairs, airfield inspections, joint sealing, overbanding, utility reinstatement, tar, chip surfacing, thermoplastic, pot hole repairs, groundworks, drainage, flood alleviation, runway grooving, highways grooving, grooving for livestock barns, airfield line marking, helicopter pad line marking, distribution hub safety markings, cold store safety line marking, road stud installation & removal, resin bond surfacing, resin bound surfacing, sports pitch line marking, football pitch line marking, antislip coatings for floors, antislip coating for steps & stairs",
-        "person_linkedin_url": "http://www.linkedin.com/in/luake-sollitt-51150b78",
-        "website": "http://www.jointline.co.uk",
-        "company_linkedin_url": "http://www.linkedin.com/company/jointline",
-        "facebook_url": "https://facebook.com/jointlinelimited",
-        "twitter_url": "https://twitter.com/jointlineltd",
-        "city": "Leeds",
-        "state": "England",
-        "country": "United Kingdom",
-        "company_address": "Lincoln, England, United Kingdom, LN6 9TW",
-        "company_city": "Lincoln",
-        "company_state": "England",
-        "company_country": "United Kingdom",
-        "company_phone": "+44 152 286 8636",
-        "technologies": "Outlook, Vimeo, reCAPTCHA, Typekit, Mobile Friendly, Google Font API, Apache, Google Tag Manager",
-        "annual_revenue": 7000000,
-        "total_funding": 0,
-        "latest_funding": null,
-        "latest_funding_amount": 0,
-        "last_raised_at": null,
-        "meta_data": {
-            "latest_funding_amount": "0"
-        },
-        "created_at": "2025-11-22T22:10:36.684152",
-        "updated_at": "2025-11-22T22:10:36.684152"
-    },
-    // ... (rest of the mocked data structure as before)
-];
-
-// Map RAW_API_RESULTS to internal Contact type
-const ALL_CONTACTS: Contact[] = RAW_API_RESULTS.map((r: any) => ({
-  id: r.uuid,
-  name: `${r.first_name} ${r.last_name}`,
-  email: r.email || '',
-  phone: r.corporate_phone || r.mobile_phone || r.work_direct_phone || '',
-  role: r.title,
-  company: r.company,
-  status: r.email_status || 'Unknown',
-  location: r.city ? `${r.city}, ${r.country}` : r.country || 'Unknown',
-  companyAddress: `${r.company_city}, ${r.company_country}`,
-  lastActive: new Date(r.updated_at).toLocaleDateString(),
-  avatar: `https://ui-avatars.com/api/?name=${r.first_name}+${r.last_name}&background=6366f1&color=fff&size=128`,
-  employees: r.employees,
-  revenue: r.annual_revenue,
-  industry: r.industry,
-  keywords: r.keywords ? r.keywords.split(',').map((k: string) => k.trim()) : [],
-  technologies: r.technologies ? r.technologies.split(',').map((t: string) => t.trim()) : [],
-  seniority: r.seniority,
-  department: r.departments,
-  socials: {
-    linkedin: r.person_linkedin_url,
-    twitter: r.twitter_url,
-    facebook: r.facebook_url,
-    website: r.website
-  },
-  selected: false,
-}));
 
 // --- Components ---
 
@@ -183,7 +105,7 @@ const INITIAL_FILTERS: FilterState = {
 
 export const Contacts: React.FC = () => {
   // --- State ---
-  const [contacts, setContacts] = useState<Contact[]>(ALL_CONTACTS);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -191,6 +113,7 @@ export const Contacts: React.FC = () => {
   const [revealedEmails, setRevealedEmails] = useState<Set<string>>(new Set());
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'simple' | 'full'>('full');
+  const [isLoading, setIsLoading] = useState(true);
   
   // Sorting & Pagination
   const [sortField, setSortField] = useState<keyof Contact>('name');
@@ -202,6 +125,16 @@ export const Contacts: React.FC = () => {
   const [showImport, setShowImport] = useState(false);
   const [showBulkInsert, setShowBulkInsert] = useState(false);
 
+  // Load Data Simulation
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setContacts(MOCK_CONTACTS);
+      setIsLoading(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
   // --- Derived Data Helpers ---
   const uniqueValues = useMemo(() => ({
     roles: Array.from(new Set(contacts.map(c => c.role))).sort(),
@@ -209,7 +142,7 @@ export const Contacts: React.FC = () => {
     industries: Array.from(new Set(contacts.map(c => c.industry || 'Unknown'))).sort(),
     departments: Array.from(new Set(contacts.map(c => c.department || 'Unknown'))).sort(),
     seniority: Array.from(new Set(contacts.map(c => c.seniority || 'Unknown'))).sort(),
-    locations: Array.from(new Set(contacts.map(c => c.country || 'Unknown'))).sort(),
+    locations: Array.from(new Set(contacts.map(c => c.location || 'Unknown'))).sort(),
   }), [contacts]);
 
   // --- Logic ---
@@ -334,7 +267,7 @@ export const Contacts: React.FC = () => {
       
       {/* Floating Action Toolbar */}
       <div className={`
-        fixed bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 cubic-bezier(0.175, 0.885, 0.32, 1.275) w-[90%] md:w-auto
+        fixed bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 cubic-bezier(0.175, 0.885, 0.32, 1.275) w-[calc(100%-2rem)] md:w-auto
         ${selectedIds.size > 0 ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-24 opacity-0 scale-90'}
       `}>
         <div className="flex items-center gap-1 md:gap-2 p-2.5 rounded-2xl bg-slate-900/95 dark:bg-white/95 backdrop-blur-xl shadow-2xl border border-white/10 dark:border-slate-900/10 text-white dark:text-slate-900 overflow-x-auto no-scrollbar max-w-full">
@@ -552,7 +485,11 @@ export const Contacts: React.FC = () => {
         <div className="flex-1 overflow-hidden pb-4 flex flex-col min-h-0">
           <div className="relative flex-1 rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white/50 dark:bg-slate-900/40 shadow-inner-3d-light dark:shadow-inner-3d overflow-hidden flex flex-col">
              
-             {paginatedContacts.length === 0 ? (
+             {isLoading ? (
+                <div className="p-4">
+                  <SkeletonTable3D rows={10} />
+                </div>
+             ) : paginatedContacts.length === 0 ? (
                <div className="flex flex-col items-center justify-center h-full text-center p-10">
                   <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
                      <Search size={32} className="text-slate-400" />

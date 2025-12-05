@@ -21,7 +21,7 @@ export const Card3D: React.FC<CardProps> = ({ children, className = '', title, i
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 to-transparent pointer-events-none dark:from-white/5" />
         
         {(title || Icon) && (
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 relative z-10 gap-3 sm:gap-0 shrink-0">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 relative z-10 gap-3 sm:gap-0 shrink-0">
             <div className="flex items-center gap-3">
               {Icon && (
                 <div className="p-2.5 rounded-xl bg-indigo-50/50 dark:bg-slate-700/50 shadow-inner-3d-light dark:shadow-inner-3d text-indigo-600 dark:text-indigo-400">
@@ -30,10 +30,10 @@ export const Card3D: React.FC<CardProps> = ({ children, className = '', title, i
               )}
               {title && <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{title}</h3>}
             </div>
-            {action && <div className="w-full sm:w-auto">{action}</div>}
+            {action && <div className="w-full sm:w-auto mt-2 sm:mt-0">{action}</div>}
           </div>
         )}
-        <div className="relative z-10 h-full">
+        <div className="relative z-10 h-full w-full">
           {children}
         </div>
       </div>
@@ -52,15 +52,17 @@ interface ModalProps {
 export const Modal3D: React.FC<ModalProps> = ({ isOpen, onClose, title, children, className = '' }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300" onClick={onClose} />
-      <div className={`relative z-10 w-full max-w-lg animate-enter ${className}`}>
+      <div className={`relative z-10 w-full max-w-lg my-8 animate-enter ${className}`}>
         <Card3D title={title} className="bg-white dark:bg-slate-900 shadow-2xl !h-auto" action={
           <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500">
             <X size={18} />
           </button>
         }>
-          {children}
+          <div className="max-h-[80vh] overflow-y-auto pr-2 custom-scrollbar">
+             {children}
+          </div>
         </Card3D>
       </div>
     </div>
@@ -92,7 +94,7 @@ export const Button3D: React.FC<ButtonProps> = ({ variant = 'primary', iconName,
       className={`${baseStyles} ${variants[variant]} ${className} py-2.5 px-4`}
       {...props}
     >
-      {Icon && <Icon size={18} />}
+      {Icon && <Icon size={18} className="shrink-0" />}
       <span className="relative z-10 whitespace-nowrap">{children}</span>
     </button>
   );
@@ -434,6 +436,9 @@ export const TiltRow: React.FC<{
   const rowRef = useRef<HTMLTableRowElement>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLTableRowElement>) => {
+    // Only apply tilt on non-touch devices and wider screens to prevent performance issues on mobile
+    if (window.innerWidth < 768) return;
+    
     if (!rowRef.current) return;
     const { left, top, width, height } = rowRef.current.getBoundingClientRect();
     const x = (e.clientX - left) / width;

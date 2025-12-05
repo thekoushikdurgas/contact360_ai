@@ -1,4 +1,5 @@
 
+
 export interface StatMetric {
   title: string;
   value: string;
@@ -27,10 +28,18 @@ export interface ChatMessage {
   isError?: boolean;
 }
 
+export enum UserRole {
+  FREE_USER = 'FREE_USER',
+  PRO_USER = 'PRO_USER',
+  ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN'
+}
+
 export interface NavItem {
   label: string;
   path: string;
   iconName: string;
+  allowedRoles?: UserRole[];
 }
 
 export enum GeminiModel {
@@ -134,4 +143,26 @@ export interface BillingInfo {
   credits_used: number;
   credits_limit: number;
   renewal_date: string;
+}
+
+// --- Admin History Types ---
+
+export type UserHistoryEventType = 'registration' | 'login' | 'password_reset' | 'settings_update' | 'api_key_created';
+
+export interface UserHistoryItem {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  user_avatar?: string;
+  event_type: UserHistoryEventType;
+  created_at: string;
+  city?: string;
+  region_name?: string;
+  country?: string;
+  country_code?: string;
+  timezone?: string;
+  ip?: string;
+  proxy?: boolean;
+  device?: string;
 }
